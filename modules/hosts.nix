@@ -1,5 +1,8 @@
 # defines all hosts + users + homes.
 # then config their aspects in as many files you want
 {
-  den.hosts.x86_64-linux.nixos.users.lessuseless = { };
+  den.hosts.x86_64-linux.nixos.users = {
+    lessuseless = { };
+    vanya = { };
+  };
 }
