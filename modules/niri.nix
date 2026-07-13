@@ -13,6 +13,10 @@
         imports = [ inputs.niri-flake.nixosModules.niri ];
 
         programs.niri.enable = true;
+        # Use the unstable niri build to get ext-background-effect-v1 (background
+        # blur) and the `include optional=true` KDL directive (required for DMS's
+        # dynamic theming fragments). The stable 25.08 package has neither.
+        programs.niri.package = inputs.niri-flake.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
 
         security.polkit.enable = true;
         services.gnome.gnome-keyring.enable = true;

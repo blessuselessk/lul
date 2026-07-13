@@ -1,4 +1,4 @@
-{
+{ pkgs, ... }: {
   den.aspects.audio.nixos = {
     services.pulseaudio.enable = false;
     security.rtkit.enable = true;
@@ -9,5 +9,7 @@
       pulse.enable = true;
       jack.enable = true;
     };
+    # alsa-utils: amixer/aplay/speaker-test for audio debugging
+    environment.systemPackages = [ pkgs.alsa-utils ];
   };
 }

@@ -77,28 +77,22 @@
         programs.dank-material-shell.systemd.enable = true;
         programs.quickshell.package = lib.mkForce inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-        # DMS injects its own niri keybinds (Mod+Space launcher, Mod+N
-        # notifications, Mod+Comma settings, Mod+P notepad, Super+Alt+L
-        # lock, media keys, Mod+V clipboard) via the niri-flake `binds`
-        # option - the matching entries in niri.nix's manual `binds` block
-        # were removed to avoid double-defining the same key combos.
-        programs.dank-material-shell.niri.enableKeybinds = true;
+        # DMS delivers its keybinds (Mod+Space launcher, Mod+N notifications,
+        # Mod+Comma settings, Mod+P notepad, Super+Alt+L lock, media keys,
+        # Mod+V clipboard, Mod+X power menu) via the `includes` mechanism
+        # below - it writes dms/binds.kdl at runtime which niri picks up via
+        # `include optional=true`. Using `enableKeybinds` instead would add
+        # the same binds statically via programs.niri.settings.binds AND via
+        # the include, doubling every key and triggering DMS's own eval warning.
 
-        # `includes` (on by default) is DMS's *other* mechanism for
-        # delivering niri config - it works by having niri `include` KDL
-        # fragment files DMS itself regenerates at runtime (colors, cursor,
-        # layout, outputs, windowrules, wpblur, alttab). Disabled: it
-        # requires niri's `include` KDL directive (with `optional=true`),
-        # which is a bleeding-edge feature not present in the stable niri
-        # 25.08 we have pinned - confirmed via `niri validate` directly
-        # against the rendered config.kdl ("unexpected node `include`"),
-        # which was the actual cause of the real session's "failed to
-        # parse the config file" error (a real niri/DMS version mismatch,
-        # not a config mistake). This costs the dynamic color/cursor/
-        # theming sync for now; the static keybinds from `enableKeybinds`
-        # above are unaffected, since those go through the normal
-        # `programs.niri.settings.binds` option, not this mechanism.
-        programs.dank-material-shell.niri.includes.enable = false;
+        # `includes` is DMS's mechanism for delivering niri config fragments
+        # at runtime (binds, colors, cursor, layout, outputs, windowrules,
+        # wpblur, alttab). It uses niri's `include optional=true` KDL
+        # directive, which requires niri >= unstable (stable 25.08 rejects
+        # the node). The niri aspect now pins niri-unstable, re-enabling this
+        # and restoring dynamic theming and background blur (ext-background-
+        # effect-v1). Default filesToInclude covers all fragments including
+        # "binds", so no override needed.
       };
   };
 }
