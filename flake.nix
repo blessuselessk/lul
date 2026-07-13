@@ -6,6 +6,10 @@
 
   inputs = {
     den.url = "github:denful/den";
+    dms = {
+      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:AvengeMedia/DankMaterialShell";
+    };
     flake-file.url = "github:vic/flake-file";
     flake-parts = {
       inputs.nixpkgs-lib.follows = "nixpkgs-lib";
@@ -24,6 +28,10 @@
     nix-handy.url = "github:lessuseless-odds/nix-handy/d3869ec8bc4f9b62357a46b0c9d076bea6f7673d";
     nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz";
     nixpkgs-lib.follows = "nixpkgs";
+    quickshell = {
+      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:quickshell-mirror/quickshell";
+    };
   };
 
 }

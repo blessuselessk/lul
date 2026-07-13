@@ -5,6 +5,7 @@
     includes = [
       den.batteries.hostname
       den.aspects.niri
+      den.aspects.dank-material-shell
       den.aspects.musnix
       den.aspects.handy
       den.aspects.printing
@@ -14,9 +15,14 @@
 
     # `includes` only pulls each aspect's `nixos` class into the host - the
     # `homeManager` class is a separate resolution scoped to users, so niri's
-    # home-manager companions have to be forwarded to this host's users
-    # explicitly.
-    provides.to-users.homeManager = den.aspects.niri.homeManager;
+    # and dank-material-shell's home-manager companions have to be forwarded
+    # to this host's users explicitly.
+    provides.to-users.homeManager = {
+      imports = [
+        den.aspects.niri.homeManager
+        den.aspects.dank-material-shell.homeManager
+      ];
+    };
 
     nixos =
       { ... }:
