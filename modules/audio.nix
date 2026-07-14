@@ -1,15 +1,17 @@
-{ pkgs, ... }: {
-  den.aspects.audio.nixos = {
-    services.pulseaudio.enable = false;
-    security.rtkit.enable = true;
-    services.pipewire = {
-      enable = true;
-      alsa.enable = true;
-      alsa.support32Bit = true;
-      pulse.enable = true;
-      jack.enable = true;
+{
+  den.aspects.audio.nixos =
+    { pkgs, ... }:
+    {
+      services.pulseaudio.enable = false;
+      security.rtkit.enable = true;
+      services.pipewire = {
+        enable = true;
+        alsa.enable = true;
+        alsa.support32Bit = true;
+        pulse.enable = true;
+        jack.enable = true;
+      };
+      # alsa-utils: amixer/aplay/speaker-test for audio debugging
+      environment.systemPackages = [ pkgs.alsa-utils ];
     };
-    # alsa-utils: amixer/aplay/speaker-test for audio debugging
-    environment.systemPackages = [ pkgs.alsa-utils ];
-  };
 }

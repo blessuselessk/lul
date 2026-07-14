@@ -21,6 +21,14 @@
         security.polkit.enable = true;
         services.gnome.gnome-keyring.enable = true;
 
+        # xdg-desktop-portal-gtk provides the FileChooser portal backend for
+        # niri sessions. Without it, file upload dialogs in Firefox and other
+        # apps produce no picker - the only installed backend
+        # (xdg-desktop-portal-gnome) has UseIn=gnome and ignores
+        # XDG_CURRENT_DESKTOP=niri entirely.
+        xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+        xdg.portal.config.niri.default = [ "gtk" ];
+
         # greetd is configured by the dank-material-shell aspect's greeter
         # module instead of here - it needs to own `default_session` so its
         # login UI actually launches instead of a bare niri-session.
@@ -208,6 +216,7 @@
           "Mod+Shift+Equal".action.set-window-height = "+10%";
 
           "Mod+Shift+V".action.switch-focus-between-floating-and-tiling = { };
+          "Mod+Shift+Space".action.toggle-window-floating = { };
           "Mod+W".action.toggle-column-tabbed-display = { };
 
           "Print".action.screenshot = { };
