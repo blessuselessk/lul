@@ -11,6 +11,7 @@
       den.aspects.printing
       den.aspects.audio
       den.aspects.firefox
+      den.aspects.tailscale
     ];
 
     # `includes` only pulls each aspect's `nixos` class into the host - the
@@ -21,6 +22,7 @@
       imports = [
         den.aspects.niri.homeManager
         den.aspects.dank-material-shell.homeManager
+        den.aspects.nix-direnv.homeManager
       ];
     };
 
