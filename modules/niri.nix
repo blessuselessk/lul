@@ -51,6 +51,7 @@
         # happen at system-build time instead, sidestepping the runtime
         # nix-env step entirely.
         home-manager.useUserPackages = true;
+        home-manager.backupFileExtension = "hm-backup";
       };
 
     homeManager =

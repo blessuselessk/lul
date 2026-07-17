@@ -17,11 +17,11 @@ PluginComponent {
     // Runtime state
     property bool wasOnline: false
     property bool checking: false
-    property string sessionType: "cookie"  // "cookie" or "jwt"
+    property bool authenticated: false
+    property string sessionType: "cookie"
     property string bearerToken: ""
-    property string pluginPath: ""
     readonly property string dataPath: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
-                                           .toString().replace("file://", "") + "/pinaloveMonitor"
+        .toString().replace("file://", "") + "/pinaloveMonitor"
 
     Connections {
         target: pluginService
@@ -33,29 +33,42 @@ PluginComponent {
             notifyOnline = pluginData.notifyOnline ?? true
             notifyOffline = pluginData.notifyOffline ?? false
             pollTimer.interval = pollIntervalSecs * 1000
+            // Re-publish username immediately when settings change
+            pluginService.setGlobalVar("status", { "online": wasOnline, "username": targetUsername })
         }
     }
 
-    // Re-read auth files every hour in case they were refreshed
+    // When not yet authenticated, poll every 10s so the widget updates
+    // promptly after the user completes the auth flow in a terminal.
+    Timer {
+        id: authPollTimer
+        interval: 10000
+        running: !root.authenticated
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.loadAuthFiles()
+    }
+
+    // Re-read auth files every hour to catch session expiry.
     Timer {
         id: authRefreshTimer
         interval: 3600000
-        running: true
+        running: root.authenticated
         repeat: true
-        triggeredOnStart: true
         onTriggered: root.loadAuthFiles()
     }
 
     Timer {
         id: pollTimer
         interval: root.pollIntervalSecs * 1000
-        running: root.targetUsername !== ""
+        running: root.targetUsername !== "" && root.authenticated
         repeat: true
         triggeredOnStart: false
         onTriggered: root.checkOnlineStatus()
     }
 
     function publishAuthStatus(status) {
+        authenticated = (status !== "none")
         pluginService.setGlobalVar("authStatus", status)
     }
 
@@ -73,7 +86,6 @@ PluginComponent {
                         sessionType = "jwt"
                         bearerToken = out.trim()
                         publishAuthStatus("jwt")
-                        if (!pollTimer.running) pollTimer.start()
                     } else {
                         publishAuthStatus("none")
                     }
@@ -85,10 +97,8 @@ PluginComponent {
                     if (out.trim() === "ok") {
                         sessionType = "cookie"
                         publishAuthStatus("cookie")
-                        if (!pollTimer.running) pollTimer.start()
                     } else {
                         publishAuthStatus("none")
-                        console.log("[PinaloveMonitor] No session.cookie found. Run pinalove-auth.sh.")
                     }
                 })
             } else {
@@ -162,16 +172,11 @@ PluginComponent {
     Component.onCompleted: {
         let state = pluginService.loadPluginState()
         wasOnline = state?.wasOnline ?? false
-        pluginPath = pluginService.getPluginPath()
-        // Ensure the mutable data directory exists for session files
         Proc.runCommand("pinaloveMonitor.mkDataDir", ["mkdir", "-p", dataPath], () => {})
-        console.log("[PinaloveMonitor] Started. Data path: " + dataPath)
-        pluginService.setGlobalVar("status", {
-            "online": wasOnline,
-            "username": targetUsername
+        // Defer publishing status so pluginData has time to load
+        Qt.callLater(() => {
+            pluginService.setGlobalVar("status", { "online": wasOnline, "username": targetUsername })
+            pluginService.setGlobalVar("authStatus", "none")
         })
-        pluginService.setGlobalVar("authStatus", "none")
-        pluginService.setGlobalVar("pluginPath", pluginPath)
-        loadAuthFiles()
     }
 }

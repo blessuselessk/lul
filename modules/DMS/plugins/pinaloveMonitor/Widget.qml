@@ -1,3 +1,4 @@
+import QtCore
 import QtQuick
 import Quickshell
 import qs.Common
@@ -11,9 +12,10 @@ PluginComponent {
     property bool isOnline: false
     property string targetUsername: ""
     property string authStatus: "none"  // "none" | "cookie" | "jwt"
-    property string daemonPluginPath: ""
 
     readonly property bool isAuthed: authStatus === "cookie" || authStatus === "jwt"
+    readonly property string authScript: StandardPaths.writableLocation(StandardPaths.GenericConfigLocation)
+        .toString().replace("file://", "") + "/DankMaterialShell/plugins/pinaloveMonitor/pinalove-auth.sh"
 
     PluginGlobalVar {
         varName: "status"
@@ -34,16 +36,8 @@ PluginComponent {
         }
     }
 
-    PluginGlobalVar {
-        varName: "pluginPath"
-        defaultValue: ""
-        onValueChanged: {
-            if (value) root.daemonPluginPath = value
-        }
-    }
-
     function launchAuth() {
-        let script = root.daemonPluginPath + "/pinalove-auth.sh"
+        let script = root.authScript
         Quickshell.execDetached(["sh", "-c",
             "for t in foot kitty alacritty wezterm xterm; do " +
             "  if command -v $t >/dev/null 2>&1; then " +
