@@ -25,7 +25,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
       url = "github:sodiboo/niri-flake";
     };
+    niri-use-rs = {
+      inputs.nixpkgs.follows = "nixpkgs";
+      url = "github:blessuselessk/niri-use-rs/3a9303f";
+    };
     nix-handy.url = "github:lessuseless-odds/nix-handy/d3869ec8bc4f9b62357a46b0c9d076bea6f7673d";
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz";
     nixpkgs-lib.follows = "nixpkgs";
     quickshell = {

@@ -77,22 +77,26 @@
         programs.dank-material-shell.systemd.enable = true;
         programs.quickshell.package = lib.mkForce inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-        # DMS delivers its keybinds (Mod+Space launcher, Mod+N notifications,
-        # Mod+Comma settings, Mod+P notepad, Super+Alt+L lock, media keys,
-        # Mod+V clipboard, Mod+X power menu) via the `includes` mechanism
-        # below - it writes dms/binds.kdl at runtime which niri picks up via
-        # `include optional=true`. Using `enableKeybinds` instead would add
-        # the same binds statically via programs.niri.settings.binds AND via
-        # the include, doubling every key and triggering DMS's own eval warning.
-
-        # `includes` is DMS's mechanism for delivering niri config fragments
-        # at runtime (binds, colors, cursor, layout, outputs, windowrules,
-        # wpblur, alttab). It uses niri's `include optional=true` KDL
-        # directive, which requires niri >= unstable (stable 25.08 rejects
-        # the node). The niri aspect now pins niri-unstable, re-enabling this
-        # and restoring dynamic theming and background blur (ext-background-
-        # effect-v1). Default filesToInclude covers all fragments including
-        # "binds", so no override needed.
+        # DMS's keybinds (Mod+Space launcher, Mod+N notifications, Mod+Comma
+        # settings, Mod+P notepad, Super+Alt+L lock, media/brightness keys,
+        # Mod+V clipboard, Mod+X power menu) are added statically to the niri
+        # config via enableKeybinds. The `includes` mechanism writes the other
+        # runtime fragments (colors, cursor, layout, etc.) at runtime via
+        # `include optional=true`. "binds" is excluded from filesToInclude
+        # because dms/binds.kdl is only written via `dms keybinds set` (never
+        # auto-populated from defaults), so leaving it in would leave an empty
+        # file that shadows the static binds or causes future duplicate-bind
+        # errors if someone runs `dms keybinds set` for the same key.
+        programs.dank-material-shell.niri.enableKeybinds = true;
+        programs.dank-material-shell.niri.includes.filesToInclude = [
+          "alttab"
+          "colors"
+          "cursor"
+          "layout"
+          "outputs"
+          "windowrules"
+          "wpblur"
+        ];
       };
   };
 }
