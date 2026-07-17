@@ -45,3 +45,5 @@ done
 
 echo ""
 echo "Run 'dms restart' to reload."
+echo ""
+echo "Before nixos-rebuild: rm -rf ${LIVE_DIR}/{$(IFS=,; echo "${PLUGINS[*]}")}"
