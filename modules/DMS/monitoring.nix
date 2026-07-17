@@ -107,7 +107,7 @@ in
           # Composite widget+daemon: notifies when a Pinalove user comes online.
           # Session auth files (session.cookie / session.bearer) are written at
           # runtime by pinalove-auth.sh and are not tracked in the repo.
-          pinaloveMonitor.src = ./plugins/PinaloveMonitor;
+          pinaloveMonitor.src = ./plugins/pinaloveMonitor;
         };
       };
   };
