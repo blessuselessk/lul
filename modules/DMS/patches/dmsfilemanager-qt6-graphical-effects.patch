@@ -1,0 +1,24 @@
+--- a/DmsFileManager.qml
++++ b/DmsFileManager.qml
+@@ -3,6 +3,5 @@
+ import Qt.labs.folderlistmodel
+ import Qt.labs.platform as Platform
+-import Qt5Compat.GraphicalEffects
+ import Quickshell
+ import Quickshell.Widgets
+ import Quickshell.Io
+@@ -21,14 +20,5 @@
+     property bool acceptsKeyboardFocus: true
+     property bool _previewBusy: false
+
+-    layer.enabled: true
+-    layer.effect: OpacityMask {
+-        maskSource: Rectangle {
+-            width: root.width
+-            height: root.height
+-            radius: 12
+-        }
+-    }
+-
+
+     // Desktop widget dimensions
