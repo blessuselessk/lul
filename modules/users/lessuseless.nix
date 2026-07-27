@@ -41,6 +41,15 @@
           pkgs.kdePackages.kate
           iDescriptor
         ];
+        # Keeps this user's systemd --user instance (and everything running
+        # in it - claude-desktop-headless below, plus Claude Code sessions)
+        # alive at boot regardless of whether lessuseless is the one
+        # logged in at the console. Without this, `default.target` for
+        # this user only starts on an actual interactive login, and stops
+        # the moment it ends - so if aldair or vanya logs in at the
+        # console instead, lessuseless's background services would never
+        # start (or would die) rather than just running unseen.
+        linger = true;
       };
   };
 }
