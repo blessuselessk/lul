@@ -23,6 +23,8 @@
       den.aspects.dms-plugins-hardware
       den.aspects.dms-plugins-bar-ux
       den.aspects.voxtype
+      den.aspects.omniroute
+      den.aspects.vm
     ];
 
     # `includes` only pulls each aspect's `nixos` class into the host - the
@@ -49,7 +51,7 @@
     };
 
     nixos =
-      { config, ... }:
+      { config, lib, ... }:
       {
         imports = [
           # Machine-specific hardware config for the ThinkPad P14s Gen 2i:
@@ -100,6 +102,14 @@
           powerManagement.finegrained = true;
           package = config.boot.kernelPackages.nvidiaPackages.stable;
         };
+
+        # nixos-hardware's P14s module sets videoDrivers = ["modesetting"]
+        # (overriding the mkDefault ["nvidia"] in common/gpu/nvidia/default.nix),
+        # which causes hardware.nvidia.enabled to derive as false — silently
+        # disabling the entire nvidia module so nouveau loads instead. Force
+        # "nvidia" in so the proprietary driver and kernel modules are built.
+        # PRIME offload still routes display output through the Intel iGPU.
+        services.xserver.videoDrivers = lib.mkForce [ "nvidia" ];
       };
   };
 }
