@@ -7,7 +7,7 @@
   den.aspects.git.homeManager =
     { pkgs, ... }:
     {
-      home.packages = [ pkgs.difftastic ];
+      home.packages = [ pkgs.difftastic pkgs.gh ];
       programs.git = {
         enable = true;
         signing.format = "ssh";
@@ -22,6 +22,11 @@
           difftool.difftastic.cmd = "${pkgs.difftastic}/bin/difft $LOCAL $REMOTE";
           github.user = "blessuselessk";
           core.editor = "vim";
+          # Let git ask `gh` for GitHub credentials instead of relying on a
+          # manually-configured credential store. Requires `gh auth login`
+          # once per machine; after that, git push/pull/clone against
+          # github.com just work — no separate token file to manage.
+          credential."https://github.com".helper = [ "" "!gh auth git-credential" ];
           alias = {
             "dff" = "difftool";
             "fap" = "fetch --all -p";
