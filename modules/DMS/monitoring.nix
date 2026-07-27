@@ -103,11 +103,6 @@ in
             rev = "e00c64191236db756f375e73bced3227c26035cd";
             hash = "sha256-L7cZ7ztAN7m3ibimto1qfT8xZZsH10RNwM18MN2+CH8=";
           };
-
-          # Composite widget+daemon: notifies when a Pinalove user comes online.
-          # Session auth files (session.cookie / session.bearer) are written at
-          # runtime by pinalove-auth.sh and are not tracked in the repo.
-          pinaloveMonitor.src = ./plugins/pinaloveMonitor;
         };
       };
   };
