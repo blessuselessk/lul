@@ -1,5 +1,9 @@
 { ... }:
 {
+  den.aspects.git.nixos = { pkgs, ... }: {
+    environment.systemPackages = [ pkgs.git ];
+  };
+
   den.aspects.git.homeManager =
     { pkgs, ... }:
     {

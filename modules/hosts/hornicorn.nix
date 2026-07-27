@@ -51,7 +51,7 @@
     };
 
     nixos =
-      { config, lib, ... }:
+      { config, lib, pkgs, ... }:
       {
         imports = [
           # Machine-specific hardware config for the ThinkPad P14s Gen 2i:
@@ -63,6 +63,14 @@
         ];
 
         nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+        nix.settings.substituters = [ "https://lul.cachix.org" "https://niri.cachix.org" ];
+        nix.settings.trusted-public-keys = [
+          "lul.cachix.org-1:du306UACvYmVfHgEtPd2XoPszPmgB9UyWk3iB+6ZYwE="
+          "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
+        ];
+
+        environment.systemPackages = [ pkgs.cachix ];
 
         boot.loader.systemd-boot.enable = true;
         boot.loader.efi.canTouchEfiVariables = true;

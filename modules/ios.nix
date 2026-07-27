@@ -17,7 +17,7 @@
 
     homeManager = { pkgs, ... }: {
       home.packages = [
-        inputs.idevicerestore.packages.${pkgs.system}.default
+        inputs.idevicerestore.packages.${pkgs.stdenv.hostPlatform.system}.default
         pkgs.libimobiledevice
       ];
     };

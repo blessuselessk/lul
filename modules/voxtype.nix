@@ -29,6 +29,9 @@
         home.packages = [
           pkgs.wtype # Wayland typing backend (preferred; best Unicode/CJK)
           pkgs.dotool # uinput fallback with XKB layout support
+          # OSD frontend binary: voxtype-osd (already in the vulkan package)
+          # dispatches to this based on PATH / osd.frontend setting.
+          inputs.voxtype.packages.${pkgs.stdenv.hostPlatform.system}.osd-gtk4
         ];
 
         programs.voxtype = {
@@ -55,10 +58,9 @@
             # press-again-to-stop alternative for cases where ScrollLock
             # isn't convenient.
             hotkey.enabled = true;
-            # The Quickshell OSD source isn't bundled in the Nix derivation,
-            # and voxtype-osd-gtk4 isn't in the vulkan package variant. Disable
-            # to stop the crash loop; the daemon still transcribes and types.
-            osd.enabled = false;
+            # voxtype-osd launcher (in the vulkan package) dispatches to the
+            # osd-gtk4 frontend binary we install separately above.
+            osd.enabled = true;
           };
         };
 

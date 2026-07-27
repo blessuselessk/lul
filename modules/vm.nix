@@ -13,7 +13,25 @@
   # password set manually via `passwd` post-install, not through Nix, so
   # there's nothing to carry over here. `virtualisation.vmVariant` scopes
   # this to `nix run .#vm` only; it never applies to the real system build.
-  den.aspects.nixos.nixos =
+  den.aspects.vm.nixos = { pkgs, ... }: {
+    virtualisation.libvirtd = {
+      enable = true;
+      qemu.swtpm.enable = true;
+    };
+    environment.systemPackages = [
+      pkgs.qemu
+      pkgs.virtiofsd
+      (pkgs.writeShellScriptBin "qemu" ''exec ${pkgs.qemu}/bin/qemu-system-x86_64 "$@"'')
+    ];
+    # claude-desktop's cowork feature checks hardcoded Linux paths for OVMF
+    # firmware and virtiofsd that don't exist in NixOS's /usr/ layout.
+    systemd.tmpfiles.rules = [
+      "L+ /usr/share/OVMF - - - - ${pkgs.OVMF.fd}/FV"
+      "L+ /usr/bin/virtiofsd - - - - ${pkgs.virtiofsd}/bin/virtiofsd"
+    ];
+  };
+
+  den.aspects.hornicorn.nixos =
     { ... }:
     {
       virtualisation.vmVariant.users.users.lessuseless.initialPassword = "test";
@@ -26,7 +44,7 @@
         name = "vm";
         text =
           let
-            host = inputs.self.nixosConfigurations.nixos.config;
+            host = inputs.self.nixosConfigurations.hornicorn.config;
           in
           ''
             ${host.system.build.vm}/bin/run-${host.networking.hostName}-vm "$@"

@@ -51,6 +51,10 @@
         # happen at system-build time instead, sidestepping the runtime
         # nix-env step entirely.
         home-manager.useUserPackages = true;
+        # Rename conflicting files (e.g. dev-synced plugin dirs) instead of
+        # aborting activation, so nixos-rebuild switch doesn't require a
+        # manual rm before running.
+        home-manager.backupFileExtension = "hm-backup";
       };
 
     homeManager =

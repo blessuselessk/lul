@@ -134,10 +134,7 @@ compositing (not just booting), you may need extra QEMU display flags — see
 
 Ported from a traditional, non-flake `/etc/nixos/configuration.nix` running
 KDE Plasma6/SDDM. Two intentional scope changes were made along the way:
-niri + Dank Material Shell replaced Plasma6/SDDM, and a personal
-speech-to-text flake (`nix-hyprwhspr`) was left out for now (still in flux
-upstream — if it comes back, it belongs at `modules/_hyprwhspr.nix`, since
-import-tree skips any path with a `/_` component).
+niri + Dank Material Shell replaced Plasma6/SDDM.
 
 Two non-obvious bugs surfaced during the port and are documented where they
 were fixed rather than repeated here: a home-manager package-install bug

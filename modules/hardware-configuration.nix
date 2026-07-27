@@ -1,6 +1,6 @@
 {
   # verbatim port of the hardware scan from /etc/nixos/hardware-configuration.nix
-  den.aspects.nixos.nixos =
+  den.aspects.hornicorn.nixos =
     { lib, config, modulesPath, ... }:
     {
       imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
