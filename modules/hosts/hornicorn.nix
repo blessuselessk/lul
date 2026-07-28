@@ -23,7 +23,6 @@
       den.aspects.dms-plugins-hardware
       den.aspects.dms-plugins-bar-ux
       den.aspects.voxtype
-      den.aspects.omniroute
       den.aspects.vm
     ];
 

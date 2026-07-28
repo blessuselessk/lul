@@ -28,16 +28,19 @@
           }
           {
             name = "status";
+            short = "S";
             bool = true;
             description = "Show systemd --user status of the headless service";
           }
           {
             name = "start";
+            short = "t";
             bool = true;
             description = "Start the headless service";
           }
           {
             name = "stop";
+            short = "T";
             bool = true;
             description = "Stop the headless service";
           }

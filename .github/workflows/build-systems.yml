@@ -1,0 +1,47 @@
+name: build-systems
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [master]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-hornicorn:
+    name: hornicorn (x86_64-linux)
+    runs-on: ubuntu-latest
+    steps:
+      # Free ~30 GB of disk space by evicting pre-installed GH Actions tools.
+      # Required: the omniroute Next.js build + full NixOS closure is large.
+      - uses: wimpysworld/nothing-but-nix@main
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: actions/checkout@v4
+      # Push build outputs to Cachix so the local machine can pull closures
+      # instead of rebuilding. Set CACHIX_AUTH_TOKEN in repo Settings →
+      # Secrets and variables → Actions. Cache name must match your Cachix
+      # cache (create one at cachix.org if you haven't yet).
+      - uses: cachix/cachix-action@v15
+        with:
+          name: lul
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+      # Inject CI=true so modules that gate impure/hardware behaviour on it
+      # (e.g. skipping physical device assertions) can detect the CI context.
+      # import-tree picks this up automatically alongside the rest of modules/.
+      - name: inject ci-runtime.nix
+        run: |
+          cat > modules/ci-runtime.nix <<'EOF'
+          { _module.args.CI = true; }
+          EOF
+      - name: build hornicorn
+        run: |
+          nix build \
+            .#nixosConfigurations.hornicorn.config.system.build.toplevel \
+            --no-link \
+            --print-out-paths \
+            --show-trace
+      - name: summary
+        run: |
+          echo "<code>$(nix build .#nixosConfigurations.hornicorn.config.system.build.toplevel --no-link --print-out-paths 2>/dev/null)</code>" \
+            >> "$GITHUB_STEP_SUMMARY"

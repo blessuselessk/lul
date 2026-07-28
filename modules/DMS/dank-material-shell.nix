@@ -30,7 +30,9 @@
       {
         imports = [
           inputs.dms.nixosModules.dank-material-shell
-          inputs.dms.nixosModules.greeter
+          # nixosModules.greeter was removed from DMS upstream; the greeter
+          # is now the nixpkgs-native `services.displayManager.dms-greeter`
+          # module (no import needed).
         ];
 
         # Mirrors the home-manager side's `enable` - this NixOS-level one
@@ -54,7 +56,9 @@
         # login UI instead of the bare niri-session auto-launch - the manual
         # greetd block that used to live in niri.nix has been removed so it
         # doesn't out-priority these defaults.
-        programs.dank-material-shell.greeter = {
+        # Moved from programs.dank-material-shell.greeter (removed upstream)
+        # to the nixpkgs-native services.displayManager.dms-greeter.
+        services.displayManager.dms-greeter = {
           enable = true;
           compositor.name = "niri";
           quickshell.package = lib.mkForce inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
