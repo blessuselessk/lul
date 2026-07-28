@@ -3,6 +3,11 @@
 {
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 
+  nixConfig = {
+    extra-substituters = [ "https://lul.cachix.org" ];
+    extra-trusted-public-keys = [ "lul.cachix.org-1:du306UACvYmVfHgEtPd2XoPszPmgB9UyWk3iB+6ZYwE=" ];
+  };
+
   inputs = {
     claude-desktop-debian.url = "github:aaddrick/claude-desktop-debian";
     den.url = "github:denful/den";
@@ -20,7 +25,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     idevicerestore = {
-      url = "path:/home/lessuseless/Projects/idevicerestore";
+      url = "github:blessuselessk/idevicerestore-nix/dbcb17fb8751e57f3ad0665ccac48439f3c0c2e5";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     import-tree.url = "github:vic/import-tree";

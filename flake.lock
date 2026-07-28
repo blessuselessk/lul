@@ -310,14 +310,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1784085884,
-        "narHash": "sha256-y26vL7VxvLVND2OxeX+ivVi6MVPOPbhdQgS9IxcTaDo=",
-        "path": "/home/lessuseless/Projects/idevicerestore",
-        "type": "path"
+        "lastModified": 1784085834,
+        "narHash": "sha256-MBJlWihAjYO+hAMeckYRnUCWbP84QNFu71TP2Qr2OXo=",
+        "owner": "blessuselessk",
+        "repo": "idevicerestore-nix",
+        "rev": "dbcb17fb8751e57f3ad0665ccac48439f3c0c2e5",
+        "type": "github"
       },
       "original": {
-        "path": "/home/lessuseless/Projects/idevicerestore",
-        "type": "path"
+        "owner": "blessuselessk",
+        "repo": "idevicerestore-nix",
+        "rev": "dbcb17fb8751e57f3ad0665ccac48439f3c0c2e5",
+        "type": "github"
       }
     },
     "import-tree": {

@@ -16,7 +16,6 @@ jobs:
       # Required: the omniroute Next.js build + full NixOS closure is large.
       - uses: wimpysworld/nothing-but-nix@main
       - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - uses: actions/checkout@v4
       # Push build outputs to Cachix so the local machine can pull closures
       # instead of rebuilding. Set CACHIX_AUTH_TOKEN in repo Settings →
