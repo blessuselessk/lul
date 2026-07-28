@@ -35,12 +35,24 @@ jobs:
           EOF
       - name: build hornicorn
         run: |
-          nix build \
+          set -euo pipefail
+          build_out=$(nix build \
             .#nixosConfigurations.hornicorn.config.system.build.toplevel \
             --no-link \
             --print-out-paths \
-            --show-trace
+            --show-trace)
+          echo "BUILD_OUT=${build_out}" >> "$GITHUB_ENV"
       - name: summary
+        run: echo "<code>${{ env.BUILD_OUT }}</code>" >> "$GITHUB_STEP_SUMMARY"
+      - name: collect nix logs
+        if: failure()
         run: |
-          echo "<code>$(nix build .#nixosConfigurations.hornicorn.config.system.build.toplevel --no-link --print-out-paths 2>/dev/null)</code>" \
-            >> "$GITHUB_STEP_SUMMARY"
+          mkdir -p artifacts
+          cp -v /tmp/nix*log artifacts/ 2>/dev/null || true
+          journalctl -u nix-daemon --no-pager -n 200 > artifacts/nix-daemon.log 2>/dev/null || true
+          tar -czf artifacts.tar.gz artifacts || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: nix-logs
+          path: artifacts.tar.gz
