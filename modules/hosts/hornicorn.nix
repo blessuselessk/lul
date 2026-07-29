@@ -72,7 +72,7 @@
           ];
           script = helpers: with helpers; ''
             sudo nixos-rebuild switch --flake github:blessuselessk/lul#hornicorn
-            if ! ${flag "no-push"}; then
+            if ! ${flag "no_push"}; then
               echo "Pushing locally-built paths to lul.cachix.org (already-cached paths are skipped)..."
               nix path-info --recursive /run/current-system | cachix push lul
             fi
