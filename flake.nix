@@ -40,7 +40,6 @@
     };
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz";
-    omniroute.url = "github:diegosouzapw/OmniRoute";
     pog.url = "github:jpetrucciani/pog";
     quickshell = {
       url = "github:quickshell-mirror/quickshell";
