@@ -2,9 +2,7 @@
 {
   flake-file.inputs.voxtype = {
     url = "github:peteonrails/voxtype";
-    # Intentionally NOT following our nixpkgs — voxtype uses its own pinned
-    # nixpkgs so the binary derivation only changes when voxtype's flake.lock
-    # changes, not on every nixpkgs update in this repo.
+    inputs.nixpkgs.follows = "nixpkgs";
   };
 
   # voxtype aspect — push-to-talk voice-to-text daemon (Whisper, local, no
