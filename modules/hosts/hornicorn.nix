@@ -21,7 +21,6 @@
       den.aspects.dms-plugins-desktop
       den.aspects.dms-plugins-hardware
       den.aspects.dms-plugins-bar-ux
-      den.aspects.voxtype
       den.aspects.fingerprint
       den.aspects.vm
     ];
@@ -45,7 +44,6 @@
         den.aspects.dms-plugins-desktop.homeManager
         den.aspects.dms-plugins-hardware.homeManager
         den.aspects.dms-plugins-bar-ux.homeManager
-        den.aspects.voxtype.homeManager
       ];
     };
 
