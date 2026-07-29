@@ -30,7 +30,6 @@
     };
     import-tree.url = "github:vic/import-tree";
     llm-agents-nix.url = "github:numtide/llm-agents.nix";
-    musnix.url = "github:musnix/musnix/8548782f0d1d0928daa3fffde8a008f72219a3f3";
     niri-flake = {
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";

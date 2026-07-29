@@ -6,7 +6,6 @@
       den.batteries.hostname
       den.aspects.niri
       den.aspects.dank-material-shell
-      den.aspects.musnix
       den.aspects.printing
       den.aspects.audio
       den.aspects.web-browsers
