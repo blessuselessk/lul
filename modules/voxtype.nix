@@ -8,12 +8,14 @@
   # voxtype aspect — push-to-talk voice-to-text daemon (Whisper, local, no
   # telemetry). Speak; transcribed text is typed at the cursor via wtype.
   #
-  # The .vulkan package fails to compile on CI runners (no GPU, missing native
-  # shader build artifacts). CI is captured from the flake-parts closure
-  # (ci-runtime.nix sets _module.args.CI = true in flake-parts) rather than
-  # passed as a NixOS/HM module arg. Imports are unconditional (can't gate them
-  # on CI — circular dep with _module.args in the inner module system), but all
-  # config is guarded by lib.mkIf (!CI) so nothing is built in CI.
+  # The .vulkan package is excluded from CI — voxtype's own CI does the same
+  # (see build-nix.yml: "GPU variants excluded because they require unfree
+  # allowlists and/or hardware-specific runtime deps that GitHub-hosted runners
+  # don't expose"). CI is captured from the flake-parts closure (ci-runtime.nix
+  # sets _module.args.CI = true) rather than passed as a NixOS/HM module arg.
+  # Imports are unconditional (can't gate them on CI — circular dep with
+  # _module.args in the inner module system), but all config is guarded by
+  # lib.mkIf (!CI) so nothing is built in CI.
   den.aspects.voxtype = {
     nixos =
       { pkgs, ... }:

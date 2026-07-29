@@ -51,6 +51,34 @@
 
     nixos =
       { config, lib, pkgs, ... }:
+      let
+        pog = inputs.pog.packages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
+
+        # One-shot rebuild + Cachix push. Runs the remote-flake switch (so
+        # the closure is fetched from Cachix, not built locally), then pushes
+        # any paths that CI skipped (currently: voxtype-vulkan, which is gated
+        # out of CI because GPU variants need hardware-specific runtime deps
+        # GitHub runners don't expose). Cachix deduplicates, so pushing the
+        # full closure is safe — it only uploads what isn't already cached.
+        hornicorn-rebuild = pog {
+          name = "hornicorn-rebuild";
+          description = "Switch hornicorn from the remote flake, then push locally-built paths to Cachix";
+          flags = [
+            {
+              name = "no-push";
+              bool = true;
+              description = "Skip the Cachix push after a successful switch";
+            }
+          ];
+          script = helpers: with helpers; ''
+            sudo nixos-rebuild switch --flake github:blessuselessk/lul#hornicorn
+            if ! ${flag "no-push"}; then
+              echo "Pushing locally-built paths to lul.cachix.org (already-cached paths are skipped)..."
+              nix path-info --recursive /run/current-system | cachix push lul
+            fi
+          '';
+        };
+      in
       {
         imports = [
           # Machine-specific hardware config for the ThinkPad P14s Gen 2i:
@@ -69,7 +97,7 @@
           "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
         ];
 
-        environment.systemPackages = [ pkgs.cachix ];
+        environment.systemPackages = [ pkgs.cachix hornicorn-rebuild ];
 
         boot.loader.systemd-boot.enable = true;
         boot.loader.efi.canTouchEfiVariables = true;
