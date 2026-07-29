@@ -51,10 +51,12 @@
             # require the NVIDIA dGPU to be active.
             package = inputs.voxtype.packages.${pkgs.stdenv.hostPlatform.system}.vulkan;
             engine = "whisper";
-            # base.en: fast, English-only. The daemon downloads it automatically
-            # on first start when model.name is set. Switch to "small" for better
-            # accuracy at the cost of speed.
-            model.name = "base.en";
+            # large-v3-turbo: best speed/quality tradeoff in the Whisper family.
+            # The daemon downloads it automatically on first start. base.en was
+            # too lossy for reliable transcription; large-v3-turbo is ~10x
+            # larger but the Vulkan backend on Intel Xe handles it without
+            # noticeable latency.
+            model.name = "large-v3-turbo";
             # Runs as a systemd user service under graphical-session.target,
             # ordered after pipewire.service.
             service.enable = true;
@@ -71,6 +73,13 @@
               # voxtype-osd launcher (in the vulkan package) dispatches to the
               # osd-gtk4 frontend binary we install separately above.
               osd.enabled = true;
+              # Pin to the rnnoise virtual source (echo cancel → noise suppress
+              # chain configured in audio.nix) rather than the raw mic.
+              audio.device = "rnnoise-source";
+              # Let the NVIDIA dGPU sleep between transcriptions — Vulkan
+              # inference runs on Intel Xe (PRIME offload primary), so the
+              # dGPU doesn't need to stay awake for it.
+              whisper.gpu_isolation = true;
             };
           };
 
