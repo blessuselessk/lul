@@ -117,6 +117,12 @@
         # "nvidia" in so the proprietary driver and kernel modules are built.
         # PRIME offload still routes display output through the Intel iGPU.
         services.xserver.videoDrivers = lib.mkForce [ "nvidia" ];
+
+        # Required by dms-battery-plus, wireplumber, and battery status tooling.
+        # Also indirectly needed for the UCSI USB-C PD stack — the NVIDIA PRH
+        # (platform request handler) talks to the ThinkPad EC which also owns
+        # the UCSI controller; upower keeps that path exercised correctly.
+        services.upower.enable = true;
       };
   };
 }
