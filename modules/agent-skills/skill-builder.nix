@@ -27,7 +27,7 @@
             out="$repo_root/modules/agent-skills/skill-builder/scripts/fetch-sources.sh"
             mkdir -p "$(dirname "$out")"
 
-            cat > "$out" <<'FETCH_SOURCES_SH'
+            cat >| "$out" <<'FETCH_SOURCES_SH'
             #!/usr/bin/env bash
             # Re-fetch the archived agentskills.io docs used by the
             # writing-agent-skills skill, stamping each with its source URL
