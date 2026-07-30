@@ -21,20 +21,42 @@
         security.polkit.enable = true;
         services.gnome.gnome-keyring.enable = true;
 
-        # xdg-desktop-portal-gtk provides the FileChooser portal backend for
-        # niri sessions. Without it, file upload dialogs in Firefox and other
-        # apps produce no picker - the only installed backend
-        # (xdg-desktop-portal-gnome) has UseIn=gnome and ignores
-        # XDG_CURRENT_DESKTOP=niri entirely.
-        xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-        xdg.portal.config.niri.default = [ "gtk" ];
+        # FileChooser routes to xdg-desktop-portal-gnome (+ nautilus, which
+        # it delegates to), gtk stays as fallback for other interfaces.
+        # xdg-desktop-portal-gtk alone can't show file/folder pickers here:
+        # niri doesn't implement the xdg_foreign Wayland protocol, and
+        # xdg-desktop-portal-gtk's FileChooser dialog requires it to set
+        # itself transient-for the caller - when that fails the dialog
+        # never maps at all (confirmed live: "Server is missing xdg_foreign
+        # support" / "Failed to set portal window transient for external
+        # parent" in its logs, and no window appears in `niri msg windows`
+        # at the moment a picker is triggered, e.g. Zed's "Open Folder").
+        # Matches upstream niri-wm/niri#2784 - gnome's file chooser doesn't
+        # hit the same parenting requirement. This is an explicit `default=`
+        # override, so xdg-desktop-portal-gnome's own UseIn=gnome
+        # auto-detection (which would otherwise skip it for
+        # XDG_CURRENT_DESKTOP=niri) doesn't apply.
+        xdg.portal.extraPortals = [
+          pkgs.xdg-desktop-portal-gtk
+          pkgs.xdg-desktop-portal-gnome
+        ];
+        xdg.portal.config.niri.default = [
+          "gnome"
+          "gtk"
+        ];
 
         # greetd is configured by the dank-material-shell aspect's greeter
         # module instead of here - it needs to own `default_session` so its
         # login UI actually launches instead of a bare niri-session.
         environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
-        environment.systemPackages = [ pkgs.xwayland-satellite ];
+        # nautilus: xdg-desktop-portal-gnome delegates FileChooser to it (see
+        # the portal comment above) - without it installed, the gnome portal
+        # picks up the FileChooser request and just as silently drops it.
+        environment.systemPackages = [
+          pkgs.xwayland-satellite
+          pkgs.nautilus
+        ];
 
         # Route home-manager's package installs through the NixOS system
         # profile (users.users.<name>.packages) instead of a runtime
