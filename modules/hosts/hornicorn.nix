@@ -62,6 +62,10 @@
         hornicorn-rebuild = pog {
           name = "hornicorn-rebuild";
           description = "Switch hornicorn from the remote flake, then push locally-built paths to Cachix";
+          # errexit+pipefail (pog-native, not hand-rolled) so a failing
+          # nixos-rebuild aborts the script instead of falling through to an
+          # unconditional Cachix push.
+          strict = true;
           flags = [
             {
               name = "no-push";
@@ -70,7 +74,16 @@
             }
           ];
           script = helpers: with helpers; ''
-            sudo nixos-rebuild switch --flake github:blessuselessk/lul#hornicorn
+            # DMS's niri.nix warns any time enableKeybinds + includes.enable
+            # (default true) are both set, regardless of "binds" already
+            # being excluded from includes.filesToInclude - a known
+            # false-positive for this repo's setup (see dank-material-shell.nix).
+            # Filtered here rather than system-wide so other future warnings
+            # still surface. `strict`'s pipefail keeps a real nixos-rebuild
+            # failure from being swallowed by the grep stage.
+            # shellcheck disable=SC2016
+            sudo nixos-rebuild switch --flake github:blessuselessk/lul#hornicorn 2>&1 | grep -Ev '^evaluation warning: .* profile: It is not recommended to use both `enableKeybinds` and `includes\.enable` at the same time\.$'
+
             if ! ${flag "no_push"}; then
               echo "Pushing locally-built paths to lul.cachix.org (already-cached paths are skipped)..."
               nix path-info --recursive /run/current-system | cachix push lul
