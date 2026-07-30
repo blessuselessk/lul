@@ -45,6 +45,7 @@
         den.aspects.dms-plugins-desktop.homeManager
         den.aspects.dms-plugins-hardware.homeManager
         den.aspects.dms-plugins-bar-ux.homeManager
+        den.aspects.talon.homeManager
       ];
     };
 

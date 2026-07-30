@@ -16,8 +16,19 @@
   # Its FHS env bundles wayland/wayland-protocols/wlroots/xwayland, but niri
   # isn't wlroots — expect XWayland-scoped or degraded behavior for anything
   # beyond plain dictation until this has actually been exercised under niri.
-  den.aspects.talon.nixos = {
-    imports = [ inputs.talon-nix.nixosModules.talon ];
-    programs.talon.enable = true;
+  den.aspects.talon = {
+    nixos = {
+      imports = [ inputs.talon-nix.nixosModules.talon ];
+      programs.talon.enable = true;
+    };
+
+    # Talon ships its own tray icon (StatusNotifierItem) and DMS's built-in
+    # system tray (settings.json: showSystemTray = true) picks it up with no
+    # DMS plugin needed - confirmed via `dms ipc call tray list` showing
+    # "talon [menu]" after a manual launch. This just adds the missing
+    # autostart so it doesn't have to be launched by hand every session.
+    homeManager.programs.niri.settings.spawn-at-startup = [
+      { argv = [ "talon" ]; }
+    ];
   };
 }
