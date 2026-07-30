@@ -81,8 +81,15 @@
             # Filtered here rather than system-wide so other future warnings
             # still surface. `strict`'s pipefail keeps a real nixos-rebuild
             # failure from being swallowed by the grep stage.
+            #
+            # --refresh: this is unpinned github:blessuselessk/lul, and root's
+            # Nix fetcher cache (separate from the interactive user's - `sudo`
+            # runs under its own cache) will silently reuse a stale resolution
+            # within tarball-ttl (default 1h). Without this, a switch can
+            # report success while rebuilding the exact same old commit -
+            # confirmed happening twice in practice before this was added.
             # shellcheck disable=SC2016
-            sudo nixos-rebuild switch --flake github:blessuselessk/lul#hornicorn 2>&1 | grep -Ev '^evaluation warning: .* profile: It is not recommended to use both `enableKeybinds` and `includes\.enable` at the same time\.$'
+            sudo nixos-rebuild switch --refresh --flake github:blessuselessk/lul#hornicorn 2>&1 | grep -Ev '^evaluation warning: .* profile: It is not recommended to use both `enableKeybinds` and `includes\.enable` at the same time\.$'
 
             if ! ${flag "no_push"}; then
               echo "Pushing locally-built paths to lul.cachix.org (already-cached paths are skipped)..."
