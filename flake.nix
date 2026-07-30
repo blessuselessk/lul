@@ -45,5 +45,9 @@
       url = "github:quickshell-mirror/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    talon-nix = {
+      url = "github:nix-community/talon-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 }

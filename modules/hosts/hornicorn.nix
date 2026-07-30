@@ -23,6 +23,7 @@
       den.aspects.dms-plugins-bar-ux
       den.aspects.fingerprint
       den.aspects.vm
+      den.aspects.talon
     ];
 
     # `includes` only pulls each aspect's `nixos` class into the host - the
