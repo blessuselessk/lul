@@ -27,8 +27,12 @@
     # DMS plugin needed - confirmed via `dms ipc call tray list` showing
     # "talon [menu]" after a manual launch. This just adds the missing
     # autostart so it doesn't have to be launched by hand every session.
-    homeManager.programs.niri.settings.spawn-at-startup = [
-      { argv = [ "talon" ]; }
-    ];
+    homeManager =
+      { ... }:
+      {
+        programs.niri.settings.spawn-at-startup = [
+          { argv = [ "talon" ]; }
+        ];
+      };
   };
 }
