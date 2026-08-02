@@ -13,21 +13,26 @@
       nixpkgs.config.allowUnfreePredicate =
         pkg: builtins.elem (lib.getName pkg) [ "google-chrome" "google-chrome-dev" ];
 
-      # --password-store=gnome-libsecret: Chrome's OSCrypt backend picks a
-      # credential/cookie-encryption store by sniffing
-      # XDG_CURRENT_DESKTOP/DESKTOP_SESSION. niri sets neither, so
-      # auto-detection resolves to a keyring backend that never completes its
-      # D-Bus handshake - every navigation needs the OSCrypt key to touch the
-      # cookie store, so every page load hangs forever with no error (looks
-      # exactly like "no internet"). Confirmed by: Incognito (ephemeral
-      # cookie jar) worked in the same hung browser process; --password-store
-      # =basic fixed it outright. Force the backend explicitly instead of
-      # relying on auto-detection - same fix already applied to Claude
-      # Desktop's bundled Chromium in claude-desktop.nix for the same reason.
+      # --password-store=basic: originally set to gnome-libsecret here
+      # (matching claude-desktop.nix's cage fix), but that traded a silent
+      # hang for a different one. Root-caused via chrome://net-export +
+      # direct D-Bus probing of org.freedesktop.secrets: the login gnome-
+      # keyring collection is locked, and unlocking it requires a Prompt
+      # dialog that niri can never render (niri doesn't implement the
+      # xdg_foreign Wayland protocol - the exact same gap documented in
+      # niri.nix's FileChooser comment, just hitting gnome-keyring-daemon's
+      # own prompter instead of xdg-desktop-portal-gtk this time). With
+      # gnome-libsecret selected, every cookie/credential touch blocks on
+      # that unlock forever, so nearly every navigation times out
+      # (ERR_TIMED_OUT) rather than completing. `basic` sidesteps the
+      # keyring/D-Bus/prompt path entirely - weaker at-rest encryption for
+      # saved passwords, but doesn't depend on a prompt niri can't show.
+      # Revisit if the niri xdg_foreign gap ever gets fixed upstream, or if
+      # the login keyring gets unlocked/reset out-of-band.
       environment.systemPackages = [
-        (pkgs.google-chrome.override { commandLineArgs = "--password-store=gnome-libsecret"; })
+        (pkgs.google-chrome.override { commandLineArgs = "--password-store=basic"; })
         (inputs.browser-previews.packages.${pkgs.stdenv.hostPlatform.system}.google-chrome-dev.override {
-          commandLineArgs = "--password-store=gnome-libsecret";
+          commandLineArgs = "--password-store=basic";
         })
       ];
     };
