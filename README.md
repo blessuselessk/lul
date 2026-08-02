@@ -16,7 +16,12 @@ as a hands-on pair, not just a one-shot generator. In practice that means:
 - **Nothing gets applied to the real machine sight-unseen.** Every change is
   verified in a disposable VM (`nix run .#vm`) first — booted, logged into,
   and exercised — before it's ever a candidate for `nixos-rebuild switch` on
-  actual hardware. The agent does not run `switch` or touch `/etc/nixos`.
+  actual hardware. The agent doesn't run `switch` or touch `/etc/nixos` — and
+  in practice it *can't* either: `hornicorn-rebuild`'s `sudo` step is gated on
+  the fingerprint reader, and the agent's shell has no controlling TTY for
+  PAM to prompt through, confirmed by testing (`Verification timed out` /
+  `sudo: a terminal is required`). CI builds and caches the closure; a human
+  runs `hornicorn-rebuild` themselves, in their own terminal, every time.
 - **Debugging is iterative and shown, not hidden.** Root causes were tracked
   down through direct log/binary inspection (`niri validate`, reading
   `journalctl` output, diffing rendered configs) rather than guessing —

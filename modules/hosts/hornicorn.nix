@@ -99,6 +99,26 @@
             fi
           '';
         };
+
+        # VM-verify the same remote-flake build hornicorn-rebuild would
+        # switch to, before actually touching real hardware - the README's
+        # documented workflow. Uses `nixos-rebuild build-vm` rather than
+        # `nix run .#vm` (modules/vm.nix) so it tests the exact post-CI
+        # commit on GitHub instead of the local working tree, matching what
+        # hornicorn-rebuild itself would apply. build-vm needs no sudo, so
+        # unlike hornicorn-rebuild this one is safe to run from a context
+        # with no controlling TTY (confirmed: the agent's shell can't drive
+        # hornicorn-rebuild's fingerprint/sudo prompt at all - see README).
+        hornicorn-rebuild-vm = pog {
+          name = "hornicorn-rebuild-vm";
+          description = "Build hornicorn's config as a VM from the remote flake and boot it, without touching real hardware";
+          strict = true;
+          script = helpers: with helpers; ''
+            # shellcheck disable=SC2016
+            nixos-rebuild build-vm --refresh --flake github:blessuselessk/lul#hornicorn 2>&1 | grep -Ev '^evaluation warning: .* profile: It is not recommended to use both `enableKeybinds` and `includes\.enable` at the same time\.$'
+            ./result/bin/run-hornicorn-vm
+          '';
+        };
       in
       {
         imports = [
@@ -118,7 +138,7 @@
           "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
         ];
 
-        environment.systemPackages = [ pkgs.cachix hornicorn-rebuild ];
+        environment.systemPackages = [ pkgs.cachix hornicorn-rebuild hornicorn-rebuild-vm ];
 
         boot.loader.systemd-boot.enable = true;
         boot.loader.efi.canTouchEfiVariables = true;
