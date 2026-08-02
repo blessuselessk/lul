@@ -9,6 +9,10 @@
   };
 
   inputs = {
+    browser-previews = {
+      url = "github:nix-community/browser-previews";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     claude-desktop-debian.url = "github:aaddrick/claude-desktop-debian";
     den.url = "github:denful/den";
     dms = {
