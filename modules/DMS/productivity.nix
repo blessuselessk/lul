@@ -109,11 +109,26 @@ in
 
           # Launcher: search recently opened XDG files.
           # Trigger: "rf". Requires DMS >= 1.5.0.
-          recentFiles.src = pkgs.fetchFromGitHub {
-            owner = "gouwazi";
-            repo = "dms-recent-files";
-            rev = "15010449df58ffec4f85acd48f8ee1145de31a1a";
-            hash = "sha256-zAzkM1oO50Opja8OskXyCQ7ma3eT+1fikb7bmguG8eM=";
+          #
+          # TEMPORARY: patched with console.warn instrumentation in
+          # executeItem() to root-cause "clicking a recent file does
+          # nothing" - reachable via journalctl --user -u dms.service
+          # after a real click. Underlying open mechanisms (gio open,
+          # standalone Qt.openUrlExternally) are already confirmed working
+          # after the x-scheme-handler/file fix in xdg-desktop.nix; this
+          # plugin's own executeItem() still produces zero visible effect
+          # and zero log output on a real click despite that, which static
+          # reading of the call chain (Controller.qml ->
+          # AppSearchService.executePluginItem -> this file's executeItem)
+          # can't explain. Revert once root-caused.
+          recentFiles.src = pkgs.applyPatches {
+            src = pkgs.fetchFromGitHub {
+              owner = "gouwazi";
+              repo = "dms-recent-files";
+              rev = "15010449df58ffec4f85acd48f8ee1145de31a1a";
+              hash = "sha256-zAzkM1oO50Opja8OskXyCQ7ma3eT+1fikb7bmguG8eM=";
+            };
+            patches = [ ./patches/recentfiles-debug-logging.patch ];
           };
 
           # Launcher: web search with configurable search engines.
