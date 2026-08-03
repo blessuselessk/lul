@@ -50,6 +50,16 @@
         # login UI actually launches instead of a bare niri-session.
         environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
+        # Without this, GtkFileChooserNative draws its own in-process dialog
+        # and never calls the portal at all - true for any unsandboxed GTK
+        # app (Chrome, and Electron apps that borrow GTK for native dialogs,
+        # e.g. VS Code/Slack/Discord), regardless of the FileChooser routing
+        # configured above. Flatpak/snap apps are unaffected (already forced
+        # onto the portal path by their sandbox). This makes that whole
+        # class of apps land on the already-working gnome+nautilus picker
+        # instead of drawing their own GTK dialog.
+        environment.sessionVariables.GTK_USE_PORTAL = "1";
+
         # nautilus: xdg-desktop-portal-gnome delegates FileChooser to it (see
         # the portal comment above) - without it installed, the gnome portal
         # picks up the FileChooser request and just as silently drops it.
