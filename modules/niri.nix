@@ -55,19 +55,8 @@
           ];
           "org.freedesktop.impl.portal.FileChooser" = [ "termfilechooser" ];
         };
-        # yazi-wrapper.sh (bundled with the package) drives yazi; TERMCMD
-        # swaps its kitty default for alacritty, already installed below -
-        # `-e` must be the last alacritty flag, it swallows every argument
-        # after it as the command to run (yazi-wrapper.sh appends yazi's
-        # own args after $termcmd unquoted).
-        environment.etc."xdg/xdg-desktop-portal-termfilechooser/config".text = ''
-          [filechooser]
-          cmd=yazi-wrapper.sh
-          default_dir=$HOME
-          env=TERMCMD=alacritty --title termfilechooser -e
-          open_mode=suggested
-          save_mode=suggested
-        '';
+        # The actual [filechooser] config (cmd/TERMCMD) lives in the
+        # homeManager class below, not here - see that comment for why.
 
         # greetd is configured by the dank-material-shell aspect's greeter
         # module instead of here - it needs to own `default_session` so its
@@ -124,6 +113,29 @@
         # `home-manager.sharedModules = [ homeModules.config ]` for every
         # user on this host - importing it again here would double-declare
         # its options.
+
+        # xdg-desktop-portal-termfilechooser's nixpkgs build never patches
+        # its compiled-in "system" config prefix to the real /etc - it's
+        # baked to its own store path's etc/xdg (confirmed live via
+        # --loglevel=TRACE: it tried $out/etc/xdg/xdg-desktop-portal-
+        # termfilechooser/{niri,config}, found nothing there - an
+        # environment.etc placement at the nixos level is silently
+        # unreachable). The only path outside its own store output it
+        # actually honors is $XDG_CONFIG_HOME/xdg-desktop-portal-
+        # termfilechooser/config, i.e. home-manager's xdg.configFile.
+        # Without this file at all it silently falls back to its built-in
+        # default (TERMCMD unset -> kitty, which isn't installed here),
+        # yazi-wrapper.sh dies with "kitty: command not found" (exit 127),
+        # and the portal returns a clean D-Bus error to the caller instead
+        # of ever launching anything - looks like the picker does nothing.
+        xdg.configFile."xdg-desktop-portal-termfilechooser/config".text = ''
+          [filechooser]
+          cmd=yazi-wrapper.sh
+          default_dir=$HOME
+          env=TERMCMD=alacritty --title termfilechooser -e
+          open_mode=suggested
+          save_mode=suggested
+        '';
 
         # re-homed from the old services.xserver.xkb setting, since that's a
         # dead option now that xserver itself is gone - niri's config is
