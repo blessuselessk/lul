@@ -13,21 +13,25 @@ Migrated from a traditional `/etc/nixos/configuration.nix` — see
 This repository is developed collaboratively with [Claude Code](https://claude.com/claude-code)
 as a hands-on pair, not just a one-shot generator. In practice that means:
 
-- **Nothing gets applied to the real machine without the fingerprint gate.**
-  Every change is verified in a disposable VM first — either `nix run .#vm`
-  (local tree) or `hornicorn-rebuild-vm` (the exact remote-flake commit CI
-  just built) — booted and exercised before it's a candidate for
-  `nixos-rebuild switch` on actual hardware. The agent's shell has no
-  controlling TTY by default, so a bare `sudo` inside it fails outright
-  (`Verification timed out` / `sudo: a terminal is required`) - confirmed by
-  testing. Wrapping the call in a real pty (`script -qec "hornicorn-rebuild"
-  /dev/null`) fixes the plumbing and lets PAM's fingerprint prompt wait its
-  normal window, so the agent *can* drive `hornicorn-rebuild` this way - but
-  the fingerprint reader is still the actual authority: no NOPASSWD sudoers
-  rule exists, so a switch only goes through if a human touches the sensor
-  in time. On CI green, the loop verifies via `hornicorn-rebuild-vm`, then
-  attempts `hornicorn-rebuild` up to 3 times (30s apart) waiting on that
-  touch, and stops with a loud notification if all 3 time out.
+- **Nothing gets applied to the real machine without a human touching the
+  fingerprint reader.** Every change is verified in a disposable VM first —
+  either `nix run .#vm` (local tree) or `hornicorn-rebuild-vm` (the exact
+  remote-flake commit CI just built) — booted and exercised before it's a
+  candidate for `nixos-rebuild switch` on actual hardware. The agent's shell
+  has no controlling TTY by default, so a bare `sudo` inside it fails
+  outright (`Verification timed out` / `sudo: a terminal is required`).
+  Wrapping the call in a real pty (`script -qec "hornicorn-rebuild"
+  /dev/null`) fixes that: PAM gets a proper terminal to wait on the
+  fingerprint prompt through instead of erroring immediately, and the
+  fingerprint reader polls continuously rather than needing a reactively-
+  timed touch - confirmed with a fully invalidated sudo ticket (`sudo -K`)
+  so there was no cached credential to ride on. The human doesn't need to
+  watch the agent's raw tool output live; the agent says "attempting
+  rebuild now, touch the finger scanner to auth" and the human responds to
+  that chat message, not to text streaming in a terminal. The loop: commit,
+  push, watch CI, verify via `hornicorn-rebuild-vm`, then attempt
+  `hornicorn-rebuild` this way up to 3 times (30s apart), stopping with a
+  loud notification if all 3 time out.
 - **Debugging is iterative and shown, not hidden.** Root causes were tracked
   down through direct log/binary inspection (`niri validate`, reading
   `journalctl` output, diffing rendered configs) rather than guessing —
