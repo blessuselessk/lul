@@ -2,12 +2,52 @@
 {
   den.aspects.dms-plugins-desktop = {
     homeManager =
-      { pkgs, ... }:
+      { pkgs, lib, ... }:
       {
         home.packages = [
           pkgs.mpvpaper # mpvpaper: video wallpapers
           pkgs.ffmpeg # mpvpaper: video processing
+          pkgs.mpv # video/audio playback - fills a real gap, nothing else
+          # on this host had a registered default for video/mp4, audio/mpeg,
+          # etc. (confirmed live via `gio mime`)
+          pkgs.file-roller # archive manager - same gap for zip/tar/7z/etc.
         ];
+
+        # mpv.desktop and org.gnome.FileRoller.desktop declare MimeType
+        # lists broad enough to cover essentially every real-world
+        # video/audio/archive format, but installing the package alone
+        # doesn't make either the *default* handler - nothing was
+        # registered for these at all before (`gio mime video/mp4` said
+        # "No default applications"). Only fills mimetypes with no default
+        # yet, so it never fights DMS's own "Default Apps" panel or any
+        # future manual `xdg-mime default` call - those already-set
+        # entries (e.g. the scheme handlers already in mimeapps.list) are
+        # left untouched. Deliberately not using home-manager's
+        # `xdg.mimeApps` option here: that manages the whole mimeapps.list
+        # as a nix-store symlink, which would make it read-only and break
+        # DMS's live "Default Apps" UI from ever writing to it again.
+        home.activation.setSaneMimeDefaults = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          set_default_if_unset() {
+            local app="$1"
+            shift
+            for mime in "$@"; do
+              if [ -z "$(${pkgs.xdg-utils}/bin/xdg-mime query default "$mime" 2>/dev/null)" ]; then
+                $VERBOSE_ECHO "setSaneMimeDefaults: $mime -> $app"
+                $DRY_RUN_CMD ${pkgs.xdg-utils}/bin/xdg-mime default "$app" "$mime"
+              fi
+            done
+          }
+          set_default_if_unset mpv.desktop \
+            video/mp4 video/x-matroska video/webm video/quicktime video/x-msvideo \
+            video/mpeg video/x-flv video/x-ms-wmv \
+            audio/mpeg audio/mp4 audio/flac audio/ogg audio/x-wav audio/aac \
+            audio/x-ms-wma audio/opus
+          set_default_if_unset org.gnome.FileRoller.desktop \
+            application/zip application/x-tar application/x-compressed-tar \
+            application/gzip application/x-7z-compressed \
+            application/x-bzip-compressed-tar application/vnd.rar \
+            application/x-xz-compressed-tar
+        '';
 
         # dmsfilemanager is a DMS desktop plugin with no standalone .desktop
         # file, so DMS's Default Apps > File Manager picker can't see it
