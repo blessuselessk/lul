@@ -13,15 +13,21 @@ Migrated from a traditional `/etc/nixos/configuration.nix` — see
 This repository is developed collaboratively with [Claude Code](https://claude.com/claude-code)
 as a hands-on pair, not just a one-shot generator. In practice that means:
 
-- **Nothing gets applied to the real machine sight-unseen.** Every change is
-  verified in a disposable VM (`nix run .#vm`) first — booted, logged into,
-  and exercised — before it's ever a candidate for `nixos-rebuild switch` on
-  actual hardware. The agent doesn't run `switch` or touch `/etc/nixos` — and
-  in practice it *can't* either: `hornicorn-rebuild`'s `sudo` step is gated on
-  the fingerprint reader, and the agent's shell has no controlling TTY for
-  PAM to prompt through, confirmed by testing (`Verification timed out` /
-  `sudo: a terminal is required`). CI builds and caches the closure; a human
-  runs `hornicorn-rebuild` themselves, in their own terminal, every time.
+- **Nothing gets applied to the real machine without the fingerprint gate.**
+  Every change is verified in a disposable VM first — either `nix run .#vm`
+  (local tree) or `hornicorn-rebuild-vm` (the exact remote-flake commit CI
+  just built) — booted and exercised before it's a candidate for
+  `nixos-rebuild switch` on actual hardware. The agent's shell has no
+  controlling TTY by default, so a bare `sudo` inside it fails outright
+  (`Verification timed out` / `sudo: a terminal is required`) - confirmed by
+  testing. Wrapping the call in a real pty (`script -qec "hornicorn-rebuild"
+  /dev/null`) fixes the plumbing and lets PAM's fingerprint prompt wait its
+  normal window, so the agent *can* drive `hornicorn-rebuild` this way - but
+  the fingerprint reader is still the actual authority: no NOPASSWD sudoers
+  rule exists, so a switch only goes through if a human touches the sensor
+  in time. On CI green, the loop verifies via `hornicorn-rebuild-vm`, then
+  attempts `hornicorn-rebuild` up to 3 times (30s apart) waiting on that
+  touch, and stops with a loud notification if all 3 time out.
 - **Debugging is iterative and shown, not hidden.** Root causes were tracked
   down through direct log/binary inspection (`niri validate`, reading
   `journalctl` output, diffing rendered configs) rather than guessing —
