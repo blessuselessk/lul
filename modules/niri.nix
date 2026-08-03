@@ -21,29 +21,53 @@
         security.polkit.enable = true;
         services.gnome.gnome-keyring.enable = true;
 
-        # FileChooser routes to xdg-desktop-portal-gnome (+ nautilus, which
-        # it delegates to), gtk stays as fallback for other interfaces.
-        # xdg-desktop-portal-gtk alone can't show file/folder pickers here:
-        # niri doesn't implement the xdg_foreign Wayland protocol, and
-        # xdg-desktop-portal-gtk's FileChooser dialog requires it to set
-        # itself transient-for the caller - when that fails the dialog
-        # never maps at all (confirmed live: "Server is missing xdg_foreign
-        # support" / "Failed to set portal window transient for external
-        # parent" in its logs, and no window appears in `niri msg windows`
-        # at the moment a picker is triggered, e.g. Zed's "Open Folder").
-        # Matches upstream niri-wm/niri#2784 - gnome's file chooser doesn't
-        # hit the same parenting requirement. This is an explicit `default=`
-        # override, so xdg-desktop-portal-gnome's own UseIn=gnome
-        # auto-detection (which would otherwise skip it for
-        # XDG_CURRENT_DESKTOP=niri) doesn't apply.
+        # FileChooser routes to xdg-desktop-portal-termfilechooser (yazi,
+        # opened in alacritty) instead of gnome/gtk. Root cause: niri
+        # doesn't implement the xdg_foreign Wayland protocol, and every
+        # GTK-drawn portal dialog - gtk's own, and gnome's, which is also a
+        # gtk dialog under the hood - requires setting itself transient-for
+        # the caller to map at all. When that fails the dialog never maps
+        # (confirmed live: "Server is missing xdg_foreign support" /
+        # "Failed to set portal window transient for external parent" in
+        # the backend's logs, no window appears in `niri msg windows` at
+        # the moment a picker is triggered, and the caller - Zed's "Open
+        # Folder", Chrome's upload dialog - hangs waiting on a response
+        # that never comes). Routing gnome first (niri-wm/niri#2784) was
+        # tried as a workaround, but it depends on xdg-desktop-portal-gnome
+        # already being D-Bus-activated by the time the request lands, and
+        # a cold main portal daemon can still fall through to gtk and hang
+        # exactly the same way. termfilechooser opens a normal top-level
+        # terminal window rather than a transient dialog, so it sidesteps
+        # the xdg_foreign requirement entirely instead of depending on
+        # which backend answers first.
+        # gnome/gtk stay installed as the default for every other portal
+        # interface (Access, Notification, Settings, etc.) - only
+        # FileChooser is overridden below.
         xdg.portal.extraPortals = [
           pkgs.xdg-desktop-portal-gtk
           pkgs.xdg-desktop-portal-gnome
+          pkgs.xdg-desktop-portal-termfilechooser
         ];
-        xdg.portal.config.niri.default = [
-          "gnome"
-          "gtk"
-        ];
+        xdg.portal.config.niri = {
+          default = [
+            "gnome"
+            "gtk"
+          ];
+          "org.freedesktop.impl.portal.FileChooser" = [ "termfilechooser" ];
+        };
+        # yazi-wrapper.sh (bundled with the package) drives yazi; TERMCMD
+        # swaps its kitty default for alacritty, already installed below -
+        # `-e` must be the last alacritty flag, it swallows every argument
+        # after it as the command to run (yazi-wrapper.sh appends yazi's
+        # own args after $termcmd unquoted).
+        environment.etc."xdg/xdg-desktop-portal-termfilechooser/config".text = ''
+          [filechooser]
+          cmd=yazi-wrapper.sh
+          default_dir=$HOME
+          env=TERMCMD=alacritty --title termfilechooser -e
+          open_mode=suggested
+          save_mode=suggested
+        '';
 
         # greetd is configured by the dank-material-shell aspect's greeter
         # module instead of here - it needs to own `default_session` so its
@@ -56,16 +80,19 @@
         # e.g. VS Code/Slack/Discord), regardless of the FileChooser routing
         # configured above. Flatpak/snap apps are unaffected (already forced
         # onto the portal path by their sandbox). This makes that whole
-        # class of apps land on the already-working gnome+nautilus picker
-        # instead of drawing their own GTK dialog.
+        # class of apps land on the termfilechooser picker instead of
+        # drawing their own GTK dialog.
         environment.sessionVariables.GTK_USE_PORTAL = "1";
 
-        # nautilus: xdg-desktop-portal-gnome delegates FileChooser to it (see
-        # the portal comment above) - without it installed, the gnome portal
-        # picks up the FileChooser request and just as silently drops it.
+        # yazi: backs the termfilechooser FileChooser override above.
+        # nautilus: no longer required by the FileChooser routing (that's
+        # termfilechooser's job now), kept installed as an actual file
+        # manager app (e.g. DMS's Default Apps > File Manager, per
+        # modules/DMS/xdg-desktop.nix).
         environment.systemPackages = [
           pkgs.xwayland-satellite
           pkgs.nautilus
+          pkgs.yazi
         ];
 
         # Route home-manager's package installs through the NixOS system
