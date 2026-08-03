@@ -38,7 +38,6 @@
         description = "lessuseless";
         extraGroups = [ "audio" "input" "libvirtd" ];
         packages = [
-          pkgs.kdePackages.kate
           iDescriptor
         ];
         # Keeps this user's systemd --user instance (and everything running
