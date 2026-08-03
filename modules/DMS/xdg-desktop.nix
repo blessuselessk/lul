@@ -32,6 +32,30 @@
         # (it filters DesktopEntries by Categories=FileManager). This entry
         # registers it in the XDG database so it appears in the dropdown and
         # can be set as the inode/directory handler.
+        #
+        # MimeType deliberately does NOT include x-scheme-handler/file (it
+        # did, until this was root-caused live tonight). GIO's own file-open
+        # path (`gio open <path>`, and very likely Qt's own
+        # Qt.openUrlExternally("file://" + path) on this GNOME/GIO-
+        # integrated system) resolves any local file through the file://
+        # URI *scheme* handler before ever consulting its actual
+        # content-type (video/mp4, application/pdf, etc.). With
+        # dmsfilemanager as the sole app claiming that scheme, EVERY file
+        # open - videos, pdfs, everything - got routed to it instead of the
+        # real per-filetype default. Its Exec line
+        # (`dms ipc call desktopWidget enable dmsfilemanager`) has no field
+        # code for a target at all, so the launcher just appends the file
+        # path as an extra positional arg, which the underlying
+        # `enable(instanceId)` IPC call rejects with "Too many arguments
+        # provided" - a silent failure with no visible effect (confirmed
+        # live via strace: this is why clicking a recent file - or any
+        # "open this file" action funneled through GIO - appeared to do
+        # nothing all night). Confirmed live that dropping the claim here
+        # (and clearing mimeapps.list's existing x-scheme-handler/file=
+        # line by hand) makes `gio open` correctly fall through to
+        # content-type resolution instead (mpv launched immediately).
+        # inode/directory is untouched and still correctly routes folder
+        # opens here.
         xdg.dataFile."applications/dmsfilemanager.desktop".text = ''
           [Desktop Entry]
           Type=Application
@@ -41,7 +65,7 @@
           Exec=dms ipc call desktopWidget enable dmsfilemanager
           Terminal=false
           Categories=FileManager;
-          MimeType=inode/directory;x-scheme-handler/file;
+          MimeType=inode/directory;
         '';
 
         # nautilus (installed in modules/niri.nix, kept as a real file
