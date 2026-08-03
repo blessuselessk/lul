@@ -63,6 +63,31 @@
           compositor.name = "niri";
           quickshell.package = lib.mkForce inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
         };
+
+        # Root-cause fix for the "gnome-keyring login collection stays
+        # locked" problem documented in web-browsers.nix and
+        # claude-desktop.nix: on this greetd+DMS setup, the actual password
+        # never reaches gnome-keyring, so its `login` collection is never
+        # auto-unlocked at login - any app using --password-store=gnome-
+        # libsecret (or Electron's default OSCrypt sniffing) then hits a
+        # locked collection and needs an unlock Prompt dialog that niri
+        # can't render (no xdg_foreign support), hanging instead.
+        #
+        # `dms-greeter` (the quickshell greeter UI's own PAM service) is
+        # NOT the right place for this - it only runs the greeter's local
+        # credential check. `greetd` (this PAM service) is what the greetd
+        # *daemon* itself uses for its own internal, single-handle
+        # authenticate -> open-session PAM transaction when it actually
+        # launches the user's session (confirmed live: it substacks/includes
+        # `login` for auth/account/session - see nixpkgs'
+        # services.greetd.nix). That single transaction is what carries the
+        # real login password from pam_gnome_keyring's auth stage through to
+        # its session stage, which is what's needed to auto-unlock the
+        # keyring. Verified live on this host (2026-08-03) that both
+        # `greetd` and `dms-greeter` had enableGnomeKeyring=false before
+        # this change (`nix eval .#nixosConfigurations.hornicorn.config.
+        # security.pam.services.<name>.enableGnomeKeyring`).
+        security.pam.services.greetd.enableGnomeKeyring = true;
       };
 
     homeManager =
