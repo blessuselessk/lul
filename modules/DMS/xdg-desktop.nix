@@ -26,6 +26,33 @@
           MimeType=inode/directory;x-scheme-handler/file;
         '';
 
+        # nautilus (installed in modules/niri.nix, kept as a real file
+        # manager app) ships org.gnome.Nautilus.desktop with Name=Files -
+        # in DMS's app launcher that's indistinguishable from "the" Files
+        # app, so it's what actually opens when clicking a generic "Files"
+        # entry, even though inode/directory's actual default (above) is
+        # dmsfilemanager. Launching an app icon execs its own Exec= line
+        # directly - it never consults mimeapps.list defaults, so pointing
+        # the default at dmsfilemanager doesn't stop this entry from
+        # showing up too. A same-filename override in
+        # ~/.local/share/applications takes full precedence over the
+        # system one (XDG desktop file lookup, first match wins - it
+        # doesn't merge fields) - NoDisplay=true drops it from menus/
+        # launchers while leaving `nautilus` itself and this entry's
+        # MimeType still usable as an explicit "Open With" fallback.
+        xdg.dataFile."applications/org.gnome.Nautilus.desktop".text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Files
+          Comment=Access and organize files
+          Exec=nautilus --new-window %U
+          Icon=org.gnome.Nautilus
+          Terminal=false
+          NoDisplay=true
+          Categories=GNOME;GTK;Utility;Core;FileManager;
+          MimeType=inode/directory;application/x-7z-compressed;application/x-7z-compressed-tar;application/x-bzip;application/x-bzip-compressed-tar;application/x-compress;application/x-compressed-tar;application/x-cpio;application/x-gzip;application/x-lha;application/x-lzip;application/x-lzip-compressed-tar;application/x-lzma;application/x-lzma-compressed-tar;application/x-tar;application/x-tarz;application/x-xar;application/x-xz;application/x-xz-compressed-tar;application/zip;application/gzip;application/bzip2;application/x-bzip2-compressed-tar;application/vnd.rar;application/zstd;application/x-zstd-compressed-tar
+        '';
+
         programs.dank-material-shell.plugins = {
           # Desktop widget: circular audio visualizer with bars, wave,
           # rings, and bloom effects. Requires DMS >= 1.2.0.
