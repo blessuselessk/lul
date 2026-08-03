@@ -73,6 +73,18 @@
         # drawing their own GTK dialog.
         environment.sessionVariables.GTK_USE_PORTAL = "1";
 
+        # DMS's SessionService.launchDesktopEntry does `SessionData.
+        # resolveTerminal() || "xterm"` for any Terminal=true desktop entry
+        # (e.g. yazi.desktop's own launcher icon, distinct from the
+        # termfilechooser picker above) - but resolveTerminal() only checks
+        # a manual DMS setting or $TERMINAL, never the terminalProbe list it
+        # separately builds of what's actually installed. With neither set,
+        # every Terminal=true app launch falls back to the literal string
+        # "xterm", which isn't installed here (confirmed live: `which
+        # xterm` fails) - execDetached then fails to spawn it with no
+        # visible error, so the launcher icon silently does nothing.
+        environment.sessionVariables.TERMINAL = "alacritty";
+
         # yazi: backs the termfilechooser FileChooser override above.
         # nautilus: no longer required by the FileChooser routing (that's
         # termfilechooser's job now), kept installed as an actual file
