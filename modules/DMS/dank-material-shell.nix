@@ -79,38 +79,6 @@
         # toggle (defaults to false), which we hadn't set. Without this,
         # niri runs fine but no DMS bar/shell ever launches.
         programs.dank-material-shell.systemd.enable = true;
-        # TEMPORARY: debug logging patches to root-cause "clicking a
-        # recent file does nothing" (the recentFiles launcher plugin -
-        # see productivity.nix's own temporary patch on that plugin).
-        # Confirmed live the plugin's own executeItem() is never even
-        # reached on a real click (zero log output, despite the plugin
-        # loading fine and the underlying Qt.openUrlExternally mechanism
-        # being proven to work in isolation) - these patches instrument
-        # DMS core's own click-dispatch path (Controller.qml's
-        # executeItem, AppSearchService's executePluginItem) one layer up,
-        # to see which branch a real click actually takes and why it
-        # never reaches the plugin. Revert once root-caused.
-        #
-        # `patches` doesn't reach these files at all: dms-shell's own
-        # flake.nix scopes `src` (what `patches` applies to) to just
-        # `./core` (the Go backend) for the unpackPhase. The QML tree
-        # under $out/share/quickshell/dms is `cp -r`'d straight from the
-        # flake's own untouched root source string-interpolated directly
-        # into postInstall, completely bypassing src/patches (confirmed
-        # live: applying via `patches` failed with "can't find file to
-        # patch", since quickshell/ genuinely doesn't exist in the
-        # ./core-scoped unpack root at all). Patching the already-`cp -r`'d
-        # output files in an appended postInstall step is the only point
-        # that actually reaches them.
-        programs.dank-material-shell.package =
-          inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.dms-shell.overrideAttrs
-            (old: {
-              postInstall = (old.postInstall or "") + ''
-                chmod -R u+w $out/share/quickshell/dms/Modals/DankLauncherV2 $out/share/quickshell/dms/Services
-                patch -p1 -d $out/share/quickshell/dms < ${./patches/controller-debug-logging.patch}
-                patch -p1 -d $out/share/quickshell/dms < ${./patches/appsearchservice-debug-logging.patch}
-              '';
-            });
         programs.quickshell.package = lib.mkForce inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
         # DMS's keybinds (Mod+Space launcher, Mod+N notifications, Mod+Comma

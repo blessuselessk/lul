@@ -110,25 +110,23 @@ in
           # Launcher: search recently opened XDG files.
           # Trigger: "rf". Requires DMS >= 1.5.0.
           #
-          # TEMPORARY: patched with console.warn instrumentation in
-          # executeItem() to root-cause "clicking a recent file does
-          # nothing" - reachable via journalctl --user -u dms.service
-          # after a real click. Underlying open mechanisms (gio open,
-          # standalone Qt.openUrlExternally) are already confirmed working
-          # after the x-scheme-handler/file fix in xdg-desktop.nix; this
-          # plugin's own executeItem() still produces zero visible effect
-          # and zero log output on a real click despite that, which static
-          # reading of the call chain (Controller.qml ->
-          # AppSearchService.executePluginItem -> this file's executeItem)
-          # can't explain. Revert once root-caused.
-          recentFiles.src = pkgs.applyPatches {
-            src = pkgs.fetchFromGitHub {
-              owner = "gouwazi";
-              repo = "dms-recent-files";
-              rev = "15010449df58ffec4f85acd48f8ee1145de31a1a";
-              hash = "sha256-zAzkM1oO50Opja8OskXyCQ7ma3eT+1fikb7bmguG8eM=";
-            };
-            patches = [ ./patches/recentfiles-debug-logging.patch ];
+          # Known upstream bug (root-caused live, not fixable from this
+          # config): DMS's default no-trigger launcher view mistags this
+          # plugin's items as type "app" instead of type "plugin" -
+          # confirmed via temporary debug patches to both this plugin and
+          # DMS core (Controller.qml/AppSearchService.qml), since removed.
+          # A mistagged click runs launchApp(item.data) on a
+          # {name,icon,comment,action,categories} object that isn't an app
+          # (no exec/command fields), which silently no-ops - looks exactly
+          # like "clicking a recent file does nothing" with zero error
+          # anywhere. Explicitly typing the "rf" trigger correctly tags
+          # items as type "plugin" and works (confirmed live: opened a
+          # real file). Filed upstream: <link once opened>.
+          recentFiles.src = pkgs.fetchFromGitHub {
+            owner = "gouwazi";
+            repo = "dms-recent-files";
+            rev = "15010449df58ffec4f85acd48f8ee1145de31a1a";
+            hash = "sha256-zAzkM1oO50Opja8OskXyCQ7ma3eT+1fikb7bmguG8eM=";
           };
 
           # Launcher: web search with configurable search engines.
