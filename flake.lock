@@ -74,6 +74,22 @@
         "type": "github"
       }
     },
+    "claude-skill-typst": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785744985,
+        "narHash": "sha256-svXlKC84MtCkNKCy3PQB91jdQ9UjtZirtA5M6iirLNw=",
+        "owner": "lessuseless-automations",
+        "repo": "claude-skill-typst",
+        "rev": "05624d770a595311b8f2263c7339bd85e93fbb53",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lessuseless-automations",
+        "repo": "claude-skill-typst",
+        "type": "github"
+      }
+    },
     "dank-qml-common": {
       "flake": false,
       "locked": {
@@ -637,6 +653,7 @@
       "inputs": {
         "browser-previews": "browser-previews",
         "claude-desktop-debian": "claude-desktop-debian",
+        "claude-skill-typst": "claude-skill-typst",
         "den": "den",
         "dms": "dms",
         "flake-file": "flake-file",

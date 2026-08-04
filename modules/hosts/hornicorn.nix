@@ -48,6 +48,7 @@
         den.aspects.dms-plugins-bar-ux.homeManager
         den.aspects.talon.homeManager
         den.aspects.zed-editor.homeManager
+        den.aspects.claude-skill-typst.homeManager
       ];
     };
 

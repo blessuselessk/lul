@@ -14,6 +14,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     claude-desktop-debian.url = "github:aaddrick/claude-desktop-debian";
+    claude-skill-typst = {
+      url = "github:lessuseless-automations/claude-skill-typst";
+      flake = false;
+    };
     den.url = "github:denful/den";
     dms = {
       url = "github:AvengeMedia/DankMaterialShell";
