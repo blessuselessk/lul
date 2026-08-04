@@ -76,6 +76,16 @@
               bool = true;
               description = "Skip the Cachix push after a successful switch";
             }
+            {
+              name = "no-restart";
+              # explicit short: pog auto-derives "-n" from the flag name,
+              # which collides with "no-push"'s own auto-derived "-n" -
+              # shellcheck (SC2221/SC2222) correctly fails the build over
+              # the resulting unreachable case arm.
+              short = "r";
+              bool = true;
+              description = "Skip restarting the xdg-desktop-portal user services after a successful switch";
+            }
           ];
           script = helpers: with helpers; ''
             # DMS's niri.nix warns any time enableKeybinds + includes.enable
@@ -94,6 +104,28 @@
             # confirmed happening twice in practice before this was added.
             # shellcheck disable=SC2016
             sudo nixos-rebuild switch --refresh --flake github:blessuselessk/lul#hornicorn 2>&1 | grep -Ev '^evaluation warning: .* profile: It is not recommended to use both `enableKeybinds` and `includes\.enable` at the same time\.$'
+
+            # xdg-desktop-portal/-gtk/-gnome/-termfilechooser are long-running
+            # systemd --user services that snapshot their backend/protocol
+            # state once at their own process startup and never hot-reload
+            # on `nixos-rebuild switch` (niri's systemd/session integration
+            # doesn't give them a target to bind restartTriggers to the way
+            # most other WM home-manager modules do - see niri-flake#348,
+            # still open upstream). Confirmed live on this host 2026-08-04: a
+            # switch that changed portal routing left the running daemons
+            # stuck on stale state for hours, across many further switches,
+            # until manually restarted - see modules/niri.nix's FileChooser
+            # comment. Restarting here covers that specific, known-recurring
+            # case cheaply; it's not a full fix for session-state staleness
+            # in general (niri's own KDL reload edge cases, DMS/quickshell
+            # state, etc. - the niri/DankMaterialShell ecosystem's own
+            # answer for those is still "log out and back in", not a
+            # targeted restart, since niri has no equivalent of
+            # graphical-session.target to hook yet).
+            if ! ${flag "no_restart"}; then
+              echo "Restarting xdg-desktop-portal user services so they pick up this switch..."
+              systemctl --user restart xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome xdg-desktop-portal-termfilechooser
+            fi
 
             if ! ${flag "no_push"}; then
               echo "Pushing locally-built paths to lul.cachix.org (already-cached paths are skipped)..."
