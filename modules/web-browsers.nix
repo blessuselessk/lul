@@ -18,17 +18,21 @@
       # hang for a different one. Root-caused via chrome://net-export +
       # direct D-Bus probing of org.freedesktop.secrets: the login gnome-
       # keyring collection is locked, and unlocking it requires a Prompt
-      # dialog that niri can never render (niri doesn't implement the
-      # xdg_foreign Wayland protocol - the exact same gap documented in
-      # niri.nix's FileChooser comment, just hitting gnome-keyring-daemon's
-      # own prompter instead of xdg-desktop-portal-gtk this time). With
-      # gnome-libsecret selected, every cookie/credential touch blocks on
-      # that unlock forever, so nearly every navigation times out
-      # (ERR_TIMED_OUT) rather than completing. `basic` sidesteps the
-      # keyring/D-Bus/prompt path entirely - weaker at-rest encryption for
-      # saved passwords, but doesn't depend on a prompt niri can't show.
-      # Revisit if the niri xdg_foreign gap ever gets fixed upstream, or if
-      # the login keyring gets unlocked/reset out-of-band.
+      # dialog that never rendered - originally attributed to niri lacking
+      # xdg_foreign support entirely. CORRECTION (2026-08-04): that's wrong,
+      # see niri.nix's FileChooser comment - niri does advertise xdg_foreign
+      # v2 (confirmed live via wayland-info), the actual gap was a
+      # long-running portal/prompter daemon not having picked up a fix yet.
+      # Whether that same explanation covers gnome-keyring-daemon's own
+      # prompter (a separate component from xdg-desktop-portal-gtk) hasn't
+      # been re-verified since. With gnome-libsecret selected, every
+      # cookie/credential touch blocks on that unlock forever, so nearly
+      # every navigation times out (ERR_TIMED_OUT) rather than completing.
+      # `basic` sidesteps the keyring/D-Bus/prompt path entirely - weaker
+      # at-rest encryption for saved passwords, but doesn't depend on a
+      # prompt that may or may not render. Revisit by retesting
+      # gnome-libsecret after restarting gnome-keyring-daemon fresh, same as
+      # the portal-daemon fix in niri.nix.
       environment.systemPackages = [
         (pkgs.google-chrome.override { commandLineArgs = "--password-store=basic"; })
         (inputs.browser-previews.packages.${pkgs.stdenv.hostPlatform.system}.google-chrome-dev.override {

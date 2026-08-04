@@ -70,8 +70,11 @@
         # never reaches gnome-keyring, so its `login` collection is never
         # auto-unlocked at login - any app using --password-store=gnome-
         # libsecret (or Electron's default OSCrypt sniffing) then hits a
-        # locked collection and needs an unlock Prompt dialog that niri
-        # can't render (no xdg_foreign support), hanging instead.
+        # locked collection and needs an unlock Prompt dialog that hangs
+        # instead of rendering. Originally attributed to niri lacking
+        # xdg_foreign support - corrected in niri.nix's FileChooser comment
+        # (2026-08-04): niri does advertise xdg_foreign v2, the real gap
+        # was a long-running daemon that hadn't picked up a fix yet.
         #
         # `dms-greeter` (the quickshell greeter UI's own PAM service) is
         # NOT the right place for this - it only runs the greeter's local

@@ -52,24 +52,46 @@
         services.gnome.gnome-keyring.enable = true;
 
         # FileChooser routes to xdg-desktop-portal-termfilechooser (yazi,
-        # opened in alacritty) instead of gnome/gtk. Root cause: niri
-        # doesn't implement the xdg_foreign Wayland protocol, and every
-        # GTK-drawn portal dialog - gtk's own, and gnome's, which is also a
-        # gtk dialog under the hood - requires setting itself transient-for
-        # the caller to map at all. When that fails the dialog never maps
-        # (confirmed live: "Server is missing xdg_foreign support" /
-        # "Failed to set portal window transient for external parent" in
-        # the backend's logs, no window appears in `niri msg windows` at
-        # the moment a picker is triggered, and the caller - Zed's "Open
-        # Folder", Chrome's upload dialog - hangs waiting on a response
-        # that never comes). Routing gnome first (niri-wm/niri#2784) was
-        # tried as a workaround, but it depends on xdg-desktop-portal-gnome
-        # already being D-Bus-activated by the time the request lands, and
-        # a cold main portal daemon can still fall through to gtk and hang
-        # exactly the same way. termfilechooser opens a normal top-level
-        # terminal window rather than a transient dialog, so it sidesteps
-        # the xdg_foreign requirement entirely instead of depending on
-        # which backend answers first.
+        # opened in alacritty) instead of gnome/gtk.
+        #
+        # CORRECTION (2026-08-04): an earlier version of this comment
+        # claimed niri doesn't implement the xdg_foreign Wayland protocol.
+        # That's wrong - confirmed live via `wayland-info` against a running
+        # niri session that it currently advertises zxdg_exporter_v2 and
+        # zxdg_importer_v2 (xdg_foreign v2) just fine. The "Server is
+        # missing xdg_foreign support" / "Failed to set portal window
+        # transient for external parent" hang (gtk's dialog never maps, no
+        # window appears in `niri msg windows`, the caller - Zed's "Open
+        # Folder", Chrome's upload dialog - hangs waiting on a response that
+        # never comes) is real, but the actual root cause is that
+        # xdg-desktop-portal/-gtk/-gnome are long-running systemd --user
+        # services that snapshot their available backends and protocol
+        # state once at their own process startup and never re-check it -
+        # they do NOT hot-reload on `nixos-rebuild switch`. A portal daemon
+        # that's been running since login can keep routing FileChooser to
+        # gtk (and gtk can keep failing its own xdg_foreign handshake) for
+        # hours after the on-disk config/package was fixed. Confirmed live
+        # 2026-08-04: `systemctl --user restart xdg-desktop-portal
+        # xdg-desktop-portal-gtk xdg-desktop-portal-gnome
+        # xdg-desktop-portal-termfilechooser` immediately fixed a hang from
+        # a daemon that predated a routing-config change by hours, verified
+        # by a direct `busctl --user call ... FileChooser OpenFile` call
+        # cleanly routing to termfilechooser afterward with zero xdg_foreign
+        # errors. Restart those four services (or log out/in) after any
+        # change that touches portal routing/config, same as any other
+        # long-running systemd --user service that doesn't watch its own
+        # config file.
+        #
+        # termfilechooser is still kept as the FileChooser backend
+        # regardless of the above: it opens a normal top-level terminal
+        # window rather than a transient dialog, so it sidesteps the
+        # xdg_foreign/transient-for dance entirely rather than depending on
+        # correct protocol negotiation from whichever backend answers first.
+        # Routing gnome first (niri-wm/niri#2784) was tried as a workaround
+        # before this, but it depends on xdg-desktop-portal-gnome already
+        # being D-Bus-activated by the time the request lands, and a cold
+        # main portal daemon can still fall through to gtk and hang exactly
+        # the same way.
         # gnome/gtk stay installed as the default for every other portal
         # interface (Access, Notification, Settings, etc.) - only
         # FileChooser is overridden below.
