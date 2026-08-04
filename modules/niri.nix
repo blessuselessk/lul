@@ -9,6 +9,36 @@
   den.aspects.niri = {
     nixos =
       { pkgs, ... }:
+      let
+        # xdg-desktop-portal-termfilechooser's shipped .portal descriptor
+        # doesn't list "niri" in UseIn= (only bspwm/dwl/Hyprland/i3/lxde/
+        # mate/openbox/pantheon/river/sway/unity/Wayfire/wlroots - wlroots
+        # itself isn't enough, xdg-desktop-portal checks the literal
+        # XDG_CURRENT_DESKTOP value, not the underlying protocol family).
+        # xdg-desktop-portal filters out any backend not listed there as
+        # unusable for the current session *before* even looking at the
+        # [preferred] override below - confirmed live via `journalctl
+        # --user -u xdg-desktop-portal`: "Choosing gtk.portal for
+        # org.freedesktop.impl.portal.FileChooser as a last-resort
+        # fallback" at portal startup, and a manual
+        # `busctl --user call ... FileChooser OpenFile` was answered by
+        # xdg-desktop-portal-gtk instead of termfilechooser. That's what
+        # reproduces the exact xdg_foreign "Unhandled parent window type"
+        # failure this whole override exists to avoid - the
+        # org.freedesktop.impl.portal.FileChooser = [ "termfilechooser" ]
+        # line further down is never actually reached. Patch the .portal
+        # file to add niri to UseIn= instead of overriding
+        # XDG_CURRENT_DESKTOP, since plenty of other desktop-detection
+        # logic in this config keys off that variable being "niri".
+        termfilechooserForNiri = pkgs.xdg-desktop-portal-termfilechooser.overrideAttrs (old: {
+          postInstall = (old.postInstall or "") + ''
+            substituteInPlace $out/share/xdg-desktop-portal/portals/termfilechooser.portal \
+              --replace-fail \
+                'UseIn=bspwm;dwl;Hyprland;i3;lxde;mate;openbox;pantheon;river;sway;unity;Wayfire;wlroots;' \
+                'UseIn=bspwm;dwl;Hyprland;i3;lxde;mate;niri;openbox;pantheon;river;sway;unity;Wayfire;wlroots;'
+          '';
+        });
+      in
       {
         imports = [ inputs.niri-flake.nixosModules.niri ];
 
@@ -46,7 +76,7 @@
         xdg.portal.extraPortals = [
           pkgs.xdg-desktop-portal-gtk
           pkgs.xdg-desktop-portal-gnome
-          pkgs.xdg-desktop-portal-termfilechooser
+          termfilechooserForNiri
         ];
         xdg.portal.config.niri = {
           default = [
