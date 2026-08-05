@@ -25,6 +25,7 @@
       den.aspects.vm
       den.aspects.talon
       den.aspects.skill-builder
+      den.aspects.transmission
     ];
 
     # `includes` only pulls each aspect's `nixos` class into the host - the
