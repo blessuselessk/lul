@@ -19,7 +19,23 @@
       # ~/Projects/<username>/ tree the repo sits in.
       programs.ssh = {
         enable = true;
+        # Home-manager's built-in `programs.ssh` defaults are on their way
+        # out (see the eval warning). Pin the same values explicitly under
+        # settings."*" instead of relying on enableDefaultConfig.
+        enableDefaultConfig = false;
         settings = {
+          "*" = {
+            ForwardAgent = false;
+            AddKeysToAgent = "no";
+            Compression = false;
+            ServerAliveInterval = 0;
+            ServerAliveCountMax = 3;
+            HashKnownHosts = false;
+            UserKnownHostsFile = "~/.ssh/known_hosts";
+            ControlMaster = "no";
+            ControlPath = "~/.ssh/master-%r@%n:%p";
+            ControlPersist = "no";
+          };
           "github.com-lessuselesss" = {
             HostName = "github.com";
             User = "git";
