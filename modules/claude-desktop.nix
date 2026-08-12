@@ -1,11 +1,17 @@
 { inputs, ... }:
 {
-  flake-file.inputs.claude-desktop-debian.url = "github:aaddrick/claude-desktop-debian";
+  flake-file.inputs.claude-desktop-debian = {
+    url = "github:aaddrick/claude-desktop-debian";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
   # pog: builds the `dispatch` CLI below (flag parsing/help/completion from a
   # plain Nix attrset instead of hand-rolled bash arg parsing - matches how
   # this repo already reaches for pkgs.writeShellApplication in modules/vm.nix
   # rather than a raw script, just with more CLI-shaped ergonomics).
-  flake-file.inputs.pog.url = "github:jpetrucciani/pog";
+  flake-file.inputs.pog = {
+    url = "github:jpetrucciani/pog";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   den.aspects.claude-desktop.homeManager =
     { pkgs, ... }:
