@@ -12,7 +12,6 @@
       den.aspects.tailscale
       den.aspects.niri-use-rs
       den.aspects.uxplay
-      den.aspects.valent
       den.aspects.dms-plugins-first-party
       den.aspects.dms-plugins-audio
       den.aspects.dms-plugins-monitoring
@@ -37,7 +36,6 @@
         den.aspects.niri.homeManager
         den.aspects.dank-material-shell.homeManager
         den.aspects.nix-direnv.homeManager
-        den.aspects.valent.homeManager
         den.aspects.uxplay.homeManager
         den.aspects.dms-plugins-first-party.homeManager
         den.aspects.dms-plugins-audio.homeManager

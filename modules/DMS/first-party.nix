@@ -32,8 +32,11 @@ in
           # theme update, battery level change, etc.).
           dankHooks.src = "${repo}/DankHooks";
 
-          # Control KDE Connect / Valent-connected devices: battery,
-          # file send, find phone, more. Works with the valent aspect.
+          # Control KDE Connect protocol-connected devices: battery,
+          # file send, find phone, more. Needs a KDE Connect-compatible
+          # implementation reachable on the network (e.g. GSConnect on the
+          # paired device, or the phone's own KDE Connect app) — this repo
+          # no longer ships one itself (valent aspect removed).
           dankKDEConnect.src = "${repo}/DankKDEConnect";
 
           # Launcher plugin: browse compositor and app keybindings.
