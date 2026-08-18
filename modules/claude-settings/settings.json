@@ -1,6 +1,10 @@
 {
+  "env": {
+    "NODE_OPTIONS": "--dns-result-order=ipv4first"
+  },
   "enabledPlugins": {
-    "mattpocock-skills@mattpocock": true
+    "mattpocock-skills@mattpocock": true,
+    "cybersecurity-skills@anthropic-cybersecurity-skills": true
   },
   "extraKnownMarketplaces": {
     "probity": {
@@ -20,10 +24,13 @@
         "source": "github",
         "repo": "mattpocock/skills"
       }
+    },
+    "anthropic-cybersecurity-skills": {
+      "source": {
+        "source": "github",
+        "repo": "mukul975/Anthropic-Cybersecurity-Skills"
+      }
     }
-  },
-  "env": {
-    "NODE_OPTIONS": "--dns-result-order=ipv4first"
   },
   "effortLevel": "xhigh",
   "tui": "fullscreen",
