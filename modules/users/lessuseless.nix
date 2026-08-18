@@ -9,6 +9,7 @@
       den.aspects.ios
       den.aspects.llm-agents
       den.aspects.claude-desktop
+      den.aspects.claude-settings
       den.aspects.git
     ];
 

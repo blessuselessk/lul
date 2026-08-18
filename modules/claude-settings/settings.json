@@ -1,0 +1,40 @@
+{
+  "enabledPlugins": {
+    "mattpocock-skills@mattpocock": true
+  },
+  "extraKnownMarketplaces": {
+    "probity": {
+      "source": {
+        "source": "github",
+        "repo": "nizos/probity"
+      }
+    },
+    "rust-skills": {
+      "source": {
+        "source": "github",
+        "repo": "actionbook/rust-skills"
+      }
+    },
+    "mattpocock": {
+      "source": {
+        "source": "github",
+        "repo": "mattpocock/skills"
+      }
+    }
+  },
+  "env": {
+    "NODE_OPTIONS": "--dns-result-order=ipv4first"
+  },
+  "effortLevel": "xhigh",
+  "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark",
+  "autoCompactEnabled": true,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true,
+  "voiceEnabled": true
+}
