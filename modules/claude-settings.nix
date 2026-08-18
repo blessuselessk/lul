@@ -52,6 +52,11 @@
             }
             {
               name = "push";
+              # explicit short: pog auto-derives "-p" from the flag name,
+              # which collides with "pull"'s own auto-derived "-p" - same
+              # shellcheck (SC2221/SC2222) failure documented next to
+              # dispatch-cli's "no-restart" flag in claude-desktop.nix.
+              short = "P";
               bool = true;
               description = "Overwrite the live file(s) with the repo's declared copy, discarding whatever changed on disk";
             }
