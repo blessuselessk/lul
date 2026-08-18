@@ -23,8 +23,10 @@
       den.aspects.fingerprint
       den.aspects.vm
       den.aspects.talon
-      den.aspects.skill-builder
       den.aspects.transmission
+      # den.aspects.voxtype  # parked again as modules/_voxtype.nix - re-add
+      #   this line and the homeManager one below once it's ready to come
+      #   back in (see 31a0d5e for the original parking reason).
     ];
 
     # `includes` only pulls each aspect's `nixos` class into the host - the
@@ -48,6 +50,7 @@
         den.aspects.talon.homeManager
         den.aspects.zed-editor.homeManager
         den.aspects.claude-skill-typst.homeManager
+        # den.aspects.voxtype.homeManager  # see the parked note in includes above
       ];
     };
 
