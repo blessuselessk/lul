@@ -194,6 +194,9 @@
         # mode: scan requests start returning -EINVAL, NM responds by rfkill
         # soft-blocking the interface, triggering the disappear/reappear loop.
         networking.networkmanager.wifi.powersave = false;
+        # Randomize the MAC address per connection instead of broadcasting
+        # the AX201's real hardware address.
+        networking.networkmanager.wifi.macAddress = "random";
 
         time.timeZone = "America/Mexico_City";
         i18n.defaultLocale = "en_US.UTF-8";
