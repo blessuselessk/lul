@@ -110,6 +110,43 @@
         # The actual [filechooser] config (cmd/TERMCMD) lives in the
         # homeManager class below, not here - see that comment for why.
 
+        # xdg-desktop-portal.service (the main dispatcher, not any of the
+        # backend implementations above) ships from nixpkgs with only
+        # `PartOf=graphical-session.target` (stop-propagation) and no
+        # `After=`/`Requisite=` on it - unlike its own sibling backend units,
+        # which already carry proper ordering (confirmed live: xdg-desktop-
+        # portal-gnome.service's own upstream unit has `Requisite=graphical-
+        # session.target`; -gtk and -termfilechooser both have `After=
+        # graphical-session.target`). Since the dispatcher is D-Bus-activated
+        # (BusName=org.freedesktop.portal.Desktop), whatever pokes the
+        # session bus first - gnome-keyring's autostart Secret request,
+        # geoclue-demo-agent, DMS probing a setting, anything - can spawn it
+        # well before niri finishes starting. Confirmed live 2026-09-12: on a
+        # fresh boot, xdg-desktop-portal.service's ActiveEnterTimestamp was
+        # 20s *before* graphical-session.target's, and every single
+        # interface (FileChooser included) got logged as "Choosing X.portal
+        # ... as a last-resort fallback" in that same second, because none of
+        # the real backend implementations were registered as available yet.
+        # Portal daemons never re-check that choice afterwards (see the
+        # restart-after-switch comment above), so this wrong snapshot wins
+        # for the rest of the login session - manifesting as the file picker
+        # silently never opening (gtk's dialog then fails on the "missing
+        # xdg_foreign support" bug, so the caller just hangs) - until
+        # something manually restarts the four portal services. Matching
+        # gnome's own unit's Requisite+After pair here closes the race: if
+        # something pokes the bus before the session is up, the activation
+        # fails outright (a normal D-Bus retry succeeds once niri is
+        # actually ready) instead of starting early and locking in gtk-only
+        # fallbacks for the whole session. This only adds a drop-in on top
+        # of the packaged unit (NixOS's default `overrideStrategy =
+        # "asDropinIfExists"` detects the existing systemd.packages-provided
+        # unit) - it does not replace ExecStart/Type=dbus/BusName from the
+        # nixpkgs-shipped file.
+        systemd.user.services.xdg-desktop-portal = {
+          after = [ "graphical-session.target" ];
+          unitConfig.Requisite = "graphical-session.target";
+        };
+
         # greetd is configured by the dank-material-shell aspect's greeter
         # module instead of here - it needs to own `default_session` so its
         # login UI actually launches instead of a bare niri-session.
