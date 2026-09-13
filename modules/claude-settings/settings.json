@@ -4,7 +4,7 @@
   },
   "enabledPlugins": {
     "mattpocock-skills@mattpocock": true,
-    "cybersecurity-skills@anthropic-cybersecurity-skills": true
+    "cybersecurity-skills@anthropic-cybersecurity-skills": false
   },
   "extraKnownMarketplaces": {
     "probity": {
