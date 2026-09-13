@@ -13,7 +13,7 @@
       home.packages = [
         (pog {
           name = "note";
-          description = "Append a timestamped line to notes.md - `note some text > other.md` to target a different file instead";
+          description = "Append a timestamped line to notes.md - pass '> other.md' at the end to target a different file instead";
           strict = true;
           # No `flags`/`arguments` declared on purpose: the whole point is
           # to take whatever free-form words were typed and treat them as
