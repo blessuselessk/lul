@@ -37,7 +37,11 @@
       in
       {
         description = "lessuseless";
-        extraGroups = [ "audio" "input" "libvirtd" ];
+        # transmission: lets this user read /var/lib/transmission/Downloads
+        # (group-owned, mode 750) via the symlink set up in
+        # modules/transmission.nix. Group membership only takes effect
+        # after this user logs in again.
+        extraGroups = [ "audio" "input" "libvirtd" "transmission" ];
         packages = [
           iDescriptor
         ];
