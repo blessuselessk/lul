@@ -16,7 +16,31 @@
   den.aspects.claude-desktop.homeManager =
     { pkgs, ... }:
     let
-      claude-desktop-pkg = inputs.claude-desktop-debian.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      claude-desktop-unwrapped = inputs.claude-desktop-debian.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      # Chromium picks its credential backend by sniffing
+      # XDG_CURRENT_DESKTOP/DESKTOP_SESSION. Neither bare `cage` (the
+      # headless Dispatch compositor below) nor `niri` (the real
+      # interactive session) gets recognized, so without this flag
+      # Chromium can't identify a keyring backend at all and silently
+      # falls back to plaintext storage - which also means OAuth/session
+      # tokens don't survive an app restart, forcing a re-login (and often
+      # tripping the Google-login "No Apps Available" portal bug below,
+      # since re-login is what triggers that flow). Confirmed live
+      # 2026-09-21: `safeStorage isEncryptionAvailable=false ...
+      # backend=basic_text` / `tokens will not persist` on the interactive
+      # profile despite gnome-keyring being alive and its `default`
+      # collection alias correctly present. Wrapping here instead of
+      # passing the flag ad hoc at each call site keeps it in one place
+      # for every profile (interactive, dispatch --login, headless).
+      claude-desktop-pkg = pkgs.symlinkJoin {
+        name = "claude-desktop";
+        paths = [ claude-desktop-unwrapped ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/claude-desktop \
+            --add-flags "--password-store=gnome-libsecret"
+        '';
+      };
       pog = inputs.pog.packages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
 
       # Everything below was, until now, a set of commands re-typed by hand
@@ -65,7 +89,7 @@
             echo "Log in, then close the window - the headless service reuses this same profile."
             WLR_RENDER_DRM_DEVICE=/dev/dri/renderD128 \
               ${pkgs.cage}/bin/cage -- ${claude-desktop-pkg}/bin/claude-desktop \
-                --user-data-dir="$profile" --password-store=gnome-libsecret
+                --user-data-dir="$profile"
             exit 0
           fi
 
@@ -157,15 +181,9 @@
             "WAYLAND_DISPLAY=wayland-dispatch"
             "WLR_RENDER_DRM_DEVICE=/dev/dri/renderD128"
           ];
-          # `--password-store=gnome-libsecret`: Chromium picks its credential
-          # backend by sniffing XDG_CURRENT_DESKTOP/DESKTOP_SESSION, which
-          # cage doesn't set - without this it can't identify a keyring
-          # backend at all (despite gnome-keyring being alive and its
-          # `default` collection alias correctly present, confirmed via
-          # `gdbus call ... org.freedesktop.Secret.Service.ReadAlias
-          # "default"` on 2026-07-27) and silently falls back to storing
-          # secrets in plaintext instead.
-          ExecStart = "${pkgs.cage}/bin/cage -- ${claude-desktop-pkg}/bin/claude-desktop --user-data-dir=%h/.config/Claude-dispatch --password-store=gnome-libsecret";
+          # `--password-store=gnome-libsecret` is baked into claude-desktop-pkg's
+          # wrapper above, not passed here - see the comment on that let binding.
+          ExecStart = "${pkgs.cage}/bin/cage -- ${claude-desktop-pkg}/bin/claude-desktop --user-data-dir=%h/.config/Claude-dispatch";
           Restart = "on-failure";
           RestartSec = "10s";
         };
