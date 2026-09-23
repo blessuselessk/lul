@@ -3,7 +3,7 @@
   den.aspects.claude-settings.homeManager =
     { pkgs, lib, ... }:
     let
-      pog = inputs.pog.packages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
+      pog = inputs.pog.legacyPackages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
 
       # Declared copies checked into this repo - the source of truth this
       # aspect keeps hornicorn's live ~/.claude/ files in sync with.

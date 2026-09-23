@@ -41,7 +41,7 @@
             --add-flags "--password-store=gnome-libsecret"
         '';
       };
-      pog = inputs.pog.packages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
+      pog = inputs.pog.legacyPackages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
 
       # Everything below was, until now, a set of commands re-typed by hand
       # (and re-derived from scratch by an unrelated Claude Code session that

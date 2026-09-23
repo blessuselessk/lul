@@ -7,7 +7,7 @@
   den.aspects.note.homeManager =
     { pkgs, ... }:
     let
-      pog = inputs.pog.packages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
+      pog = inputs.pog.legacyPackages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
     in
     {
       home.packages = [

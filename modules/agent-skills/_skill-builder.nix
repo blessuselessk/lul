@@ -70,7 +70,7 @@ in
     nixos =
       { pkgs, ... }:
       let
-        pog = inputs.pog.packages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
+        pog = inputs.pog.legacyPackages.${pkgs.stdenv.hostPlatform.system}.pog.pog;
         fetchSourcesScriptFile = pkgs.writeText "fetch-sources.sh" fetchSourcesScriptText;
 
         write-fetch-sources-script = pog {

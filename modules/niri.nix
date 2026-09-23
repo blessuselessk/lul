@@ -1,8 +1,18 @@
 { inputs, ... }:
 {
+  # niri-flake's own package build (`make-niri` in its flake.nix) asserts
+  # on `libdisplay-info_0_2`, which nixpkgs removed 2026-08-04. Following
+  # our main `nixpkgs` breaks that assert once it's bumped past the
+  # removal - and niri-flake's own default nixpkgs input is an unpinned
+  # channel URL that floats to latest too, so simply dropping `follows`
+  # doesn't help. Pin niri-flake to the last nixpkgs revision our system
+  # was building against before this was removed (2026-07-27) instead.
+  # Remove this pin and go back to `follows = "nixpkgs"` once niri-flake
+  # updates upstream to drop the removed alias.
+  flake-file.inputs.nixpkgs-niri-flake-compat.url = "github:NixOS/nixpkgs/38a488741157";
   flake-file.inputs.niri-flake = {
     url = "github:sodiboo/niri-flake";
-    inputs.nixpkgs.follows = "nixpkgs";
+    inputs.nixpkgs.follows = "nixpkgs-niri-flake-compat";
   };
 
   # niri aspect - wraps sodiboo/niri-flake, replaces Plasma6/SDDM
