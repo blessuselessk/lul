@@ -61,12 +61,28 @@
     in
     {
       # Unfree, and home-manager builds its own `pkgs` from its own
-      # nixpkgs.config rather than inheriting the system one - same
-      # per-aspect predicate as modules/obsidian-md/obsidian.nix, for the
-      # same reason (den.batteries.unfree only activates through den's
-      # aspect-inclusion graph walk, which this repo's homeManager aspects
-      # bypass - see that file's comment for the full story).
-      nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "proton-drive-cli" ];
+      # nixpkgs.config rather than inheriting the system one - same root
+      # cause as modules/obsidian-md/obsidian.nix's own unfree handling
+      # (den.batteries.unfree only activates through den's aspect-inclusion
+      # graph walk, which this repo's homeManager aspects bypass - see that
+      # file's comment for the full story).
+      #
+      # `allowUnfreePackages` (a list), not `allowUnfreePredicate` (a raw
+      # function) like obsidian.nix uses: every aspect under hornicorn.nix's
+      # `provides.to-users.homeManager.imports` lands in the SAME per-user
+      # home-manager `nixpkgs.config`, merged key-by-key via
+      # `lib.recursiveUpdate` (home-manager's modules/misc/nixpkgs.nix,
+      # `mergeConfig`). That merge only special-cases list-append for
+      # `allowUnfreePackages` (and function-composition for
+      # `packageOverrides`) - `allowUnfreePredicate` has no such case, so
+      # when a second aspect (this one) also set it, the two raw functions
+      # collided on the same key and one silently clobbered the other with
+      # no eval error, just a `Refusing to evaluate ... unfree` failure on
+      # whichever package's name lost. Confirmed live 2026-09-28.
+      # nixpkgs' own check-meta.nix ORs `allowUnfreePackages` and
+      # `allowUnfreePredicate` together, so this composes correctly
+      # alongside obsidian.nix's predicate instead of fighting it.
+      nixpkgs.config.allowUnfreePackages = [ "proton-drive-cli" ];
 
       home.packages = [ proton-drive-cli ];
     };
