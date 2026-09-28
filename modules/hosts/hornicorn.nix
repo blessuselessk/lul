@@ -54,6 +54,7 @@
         den.aspects.note.homeManager
         den.aspects.obsidian.homeManager
         den.aspects.obsidian-powerdesk.homeManager
+        den.aspects.proton-drive.homeManager
         # den.aspects.voxtype.homeManager  # see the parked note in includes above
       ];
     };
