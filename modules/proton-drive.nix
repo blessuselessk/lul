@@ -9,7 +9,7 @@
   den.aspects.proton-drive.homeManager =
     { pkgs, lib, ... }:
     let
-      version = "0.8.0";
+      version = "0.9.0";
 
       # Proton's own release manifest, which is where these two values come
       # from: https://proton.me/download/drive/cli/version.json - each
@@ -21,34 +21,53 @@
       # time, in CI, per this repo's apply workflow in the root CLAUDE.md).
       src = pkgs.fetchurl {
         url = "https://proton.me/download/drive/cli/${version}/linux-x64/proton-drive";
-        hash = "sha256-lEPXcXGciSeQ2xfm8C7Nma18U1kzKfOmfHdnfc5XdzU=";
+        hash = "sha256-T2b5hLY2EITUZWe49P1IUfQnHrn3fl0YHh7/PIozJQE=";
       };
 
-      proton-drive-cli = pkgs.stdenv.mkDerivation {
-        pname = "proton-drive-cli";
+      # This binary is a `bun build --compile` single-file executable (the
+      # app's JS bundle is appended to a real Bun runtime), and Bun's
+      # embedded-script detection turned out to be fragile under patchelf:
+      # an earlier version of this derivation used autoPatchelfHook, which
+      # only grew the file by ~1.2KB (rewriting the interpreter/rpath - no
+      # truncation) but silently broke that detection anyway. The patched
+      # binary ran, but as plain unmodified Bun - showing Bun's own "Bun is
+      # a fast JavaScript runtime..." banner on bare invocation and
+      # rejecting `auth` with "a subcommand reserved for future use by
+      # Bun", instead of running Proton's embedded CLI. Confirmed by
+      # running the pristine fetched file directly through glibc's real
+      # ld.so (bypassing Nix entirely): same file, unpatched, correctly
+      # printed Proton's own `auth login`/`auth logout` usage. So: NEVER
+      # patch this binary's bytes. buildFHSEnv instead gives it a real
+      # `/lib64/ld-linux-x86-64.so.2` and library search path inside a
+      # mount-namespace sandbox, without touching the binary at all - the
+      # same approach NixOS/nixpkgs#550980's draft PR for this exact
+      # package already used (dontPatchELF/dontStrip there, for presumably
+      # this same reason even though that PR's description didn't say so
+      # explicitly).
+      protonDriveUnwrapped = pkgs.stdenv.mkDerivation {
+        pname = "proton-drive-cli-unwrapped";
         inherit version src;
 
         dontUnpack = true;
-        nativeBuildInputs = [ pkgs.autoPatchelfHook pkgs.makeWrapper ];
+        dontPatchELF = true;
+        dontStrip = true;
 
         installPhase = ''
           runHook preInstall
           install -Dm755 $src $out/bin/proton-drive
           runHook postInstall
         '';
+      };
 
-        # The binary only NEEDs glibc (confirmed via `ldd` against the
-        # fetched binary directly - autoPatchelfHook handles that from
-        # stdenv alone) but dlopen()s libsecret at runtime to talk to
-        # gnome-keyring (services.gnome.gnome-keyring.enable = true in
-        # modules/niri.nix already provides the D-Bus secret-service side of
-        # that) for `proton-drive auth login` session storage - NixOS has no
-        # global library search path, so that dlopen needs its target on
-        # LD_LIBRARY_PATH explicitly or it fails silently at auth time.
-        postFixup = ''
-          wrapProgram $out/bin/proton-drive \
-            --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ pkgs.libsecret pkgs.dbus ]}
-        '';
+      proton-drive-cli = pkgs.buildFHSEnv {
+        name = "proton-drive";
+        # libsecret + dbus: `proton-drive auth login` stores its session via
+        # Bun.secrets, which talks to the Secret Service over D-Bus -
+        # confirmed live that it fails with "libsecret not available"
+        # without these. gnome-keyring (the service side of that D-Bus API)
+        # is already enabled in modules/niri.nix.
+        targetPkgs = pkgs: [ pkgs.libsecret pkgs.dbus ];
+        runScript = "${protonDriveUnwrapped}/bin/proton-drive";
 
         meta = {
           description = "Official Proton Drive command-line client";
@@ -82,7 +101,7 @@
       # nixpkgs' own check-meta.nix ORs `allowUnfreePackages` and
       # `allowUnfreePredicate` together, so this composes correctly
       # alongside obsidian.nix's predicate instead of fighting it.
-      nixpkgs.config.allowUnfreePackages = [ "proton-drive-cli" ];
+      nixpkgs.config.allowUnfreePackages = [ "proton-drive" ];
 
       home.packages = [ proton-drive-cli ];
     };

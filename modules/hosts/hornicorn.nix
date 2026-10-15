@@ -8,6 +8,8 @@
       den.aspects.dank-material-shell
       den.aspects.printing
       den.aspects.audio
+      # den.aspects.bluetooth  # parked as modules/_disabled/_bluetooth.nix -
+      #   re-add this line once it's ready to come back in.
       den.aspects.web-browsers
       den.aspects.tailscale
       den.aspects.niri-use-rs
@@ -52,9 +54,9 @@
         den.aspects.inkscape.homeManager
         den.aspects.claude-skill-typst.homeManager
         den.aspects.note.homeManager
+        den.aspects.proton-drive.homeManager
         den.aspects.obsidian.homeManager
         den.aspects.obsidian-powerdesk.homeManager
-        den.aspects.proton-drive.homeManager
         # den.aspects.voxtype.homeManager  # see the parked note in includes above
       ];
     };
