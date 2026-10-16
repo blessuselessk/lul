@@ -61,13 +61,26 @@
 
       proton-drive-cli = pkgs.buildFHSEnv {
         name = "proton-drive";
-        # libsecret + dbus: `proton-drive auth login` stores its session via
-        # Bun.secrets, which talks to the Secret Service over D-Bus -
-        # confirmed live that it fails with "libsecret not available"
-        # without these. gnome-keyring (the service side of that D-Bus API)
-        # is already enabled in modules/niri.nix.
-        targetPkgs = pkgs: [ pkgs.libsecret pkgs.dbus ];
-        runScript = "${protonDriveUnwrapped}/bin/proton-drive";
+        # dbus: `proton-drive auth login` stores its session via Bun.secrets,
+        # which talks to the Secret Service over D-Bus - gnome-keyring (the
+        # service side of that) is already enabled in modules/niri.nix.
+        targetPkgs = pkgs: [ pkgs.dbus ];
+        # libsecret has to be forced in via LD_PRELOAD, not just present on
+        # the library path: Bun's own dlopen("libsecret-1.so.0") doesn't
+        # honor LD_LIBRARY_PATH/ldconfig the normal way and fails with
+        # "libsecret not available" (ERR_SECRETS_PLATFORM_ERROR) regardless
+        # - confirmed this is a Bun 1.4.2 issue, not a packaging one: plain
+        # upstream `nix run nixpkgs#bun` hits the identical failure outside
+        # any sandbox, with libsecret on LD_LIBRARY_PATH, calling
+        # `Bun.secrets` directly. LD_PRELOAD-ing libsecret into the process
+        # ahead of time works around it - the dynamic linker then reuses the
+        # already-loaded library for that SONAME instead of Bun having to
+        # locate and dlopen() it itself. Confirmed fixed with this exact
+        # mechanism in a standalone repro before applying it here.
+        runScript = pkgs.writeShellScript "proton-drive-run" ''
+          export LD_PRELOAD="${pkgs.libsecret}/lib/libsecret-1.so.0''${LD_PRELOAD:+:$LD_PRELOAD}"
+          exec ${protonDriveUnwrapped}/bin/proton-drive "$@"
+        '';
 
         meta = {
           description = "Official Proton Drive command-line client";
