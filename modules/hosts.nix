@@ -5,5 +5,6 @@
     lessuseless = { };
     vanya = { };
     aldair = { };
+    bmc = { };
   };
 }
