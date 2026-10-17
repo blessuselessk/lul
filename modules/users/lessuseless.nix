@@ -8,6 +8,7 @@
       den.aspects.telegram
       den.aspects.ios
       den.aspects.llm-agents
+      den.aspects.grok-bot
       den.aspects.claude-desktop
       den.aspects.claude-settings
       den.aspects.git
