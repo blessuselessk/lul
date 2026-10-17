@@ -18,7 +18,7 @@
   # niri aspect - wraps sodiboo/niri-flake, replaces Plasma6/SDDM
   den.aspects.niri = {
     nixos =
-      { pkgs, ... }:
+      { pkgs, lib, ... }:
       let
         # xdg-desktop-portal-termfilechooser's shipped .portal descriptor
         # doesn't list "niri" in UseIn= (only bspwm/dwl/Hyprland/i3/lxde/
@@ -59,6 +59,17 @@
         programs.niri.package = inputs.niri-flake.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
 
         security.polkit.enable = true;
+        # `security.polkit.enable` only starts polkitd - it does NOT setuid-
+        # wrap pkexec (nixpkgs split that into its own opt-in option,
+        # presumably to shrink the default setuid attack surface given
+        # pkexec's CVE history, e.g. PwnKit/CVE-2021-4034). Without this,
+        # `which pkexec` resolves to the unwrapped store binary with no
+        # setuid bit, and any GUI action that shells out to pkexec (DMS's
+        # polkit-gnome-authentication-agent-1 prompts included) fails
+        # immediately instead of showing an auth dialog. Confirmed live
+        # 2026-10-17: /run/wrappers/bin had no pkexec entry at all even
+        # though polkitd was running and this line was already set.
+        security.polkit.enablePkexecWrapper = true;
         services.gnome.gnome-keyring.enable = true;
 
         # FileChooser routes to xdg-desktop-portal-termfilechooser (yazi,
@@ -152,9 +163,20 @@
         # "asDropinIfExists"` detects the existing systemd.packages-provided
         # unit) - it does not replace ExecStart/Type=dbus/BusName from the
         # nixpkgs-shipped file.
+        #
+        # Declaring this unit at all also makes NixOS write its default
+        # minimal PATH (coreutils/findutils/grep/sed/systemd) into the
+        # drop-in, replacing the user manager's PATH the portal would
+        # otherwise inherit. GIO skips any .desktop file whose Exec= binary
+        # isn't on PATH, so the OpenURI portal saw zero apps for every link
+        # type and every claude://, obsidian://, etc. handoff from Chrome
+        # landed on the "No Apps Available" chooser (confirmed 2026-09-25
+        # with `xdg-desktop-portal --verbose`: "No default handler for
+        # obsidian"). Null drops the Environment=PATH= line entirely.
         systemd.user.services.xdg-desktop-portal = {
           after = [ "graphical-session.target" ];
           unitConfig.Requisite = "graphical-session.target";
+          environment.PATH = lib.mkForce null;
         };
 
         # greetd is configured by the dank-material-shell aspect's greeter

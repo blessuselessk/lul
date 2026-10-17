@@ -8,8 +8,7 @@
       den.aspects.dank-material-shell
       den.aspects.printing
       den.aspects.audio
-      # den.aspects.bluetooth  # parked as modules/_disabled/_bluetooth.nix -
-      #   re-add this line once it's ready to come back in.
+      den.aspects.bluetooth
       den.aspects.web-browsers
       den.aspects.tailscale
       den.aspects.niri-use-rs
