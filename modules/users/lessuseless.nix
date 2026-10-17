@@ -42,7 +42,14 @@
         # (group-owned, mode 750) via the symlink set up in
         # modules/transmission.nix. Group membership only takes effect
         # after this user logs in again.
-        extraGroups = [ "audio" "input" "libvirtd" "transmission" ];
+        #
+        # Deliberately no "audio": linger = true starts this user's
+        # PipeWire at boot, and audio-group membership let it open
+        # /dev/snd before anyone logged in and hold it exclusively - the
+        # active seat user (bmc) then got no sinks or sources at all.
+        # logind's uaccess and rtkit already cover audio device access and
+        # realtime priority without needing this group.
+        extraGroups = [ "input" "libvirtd" "transmission" ];
         packages = [
           iDescriptor
         ];
