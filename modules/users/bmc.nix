@@ -14,6 +14,6 @@
   # `users.mutableUsers = true` (the default) leaves the existing password
   # untouched either way.
   den.aspects.bmc = {
-    includes = [ den.batteries.define-user ];
+    includes = [ den.batteries.define-user den.aspects.grok-bot ];
   };
 }
