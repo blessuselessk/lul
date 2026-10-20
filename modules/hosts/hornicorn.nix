@@ -56,6 +56,7 @@
         den.aspects.claude-skill-typst.homeManager
         den.aspects.note.homeManager
         den.aspects.proton-drive.homeManager
+        den.aspects.proton-drive-bisync.homeManager
         den.aspects.obsidian.homeManager
         den.aspects.obsidian-powerdesk.homeManager
         # den.aspects.voxtype.homeManager  # see the parked note in includes above
