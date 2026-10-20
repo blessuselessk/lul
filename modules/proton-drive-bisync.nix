@@ -22,12 +22,40 @@
     let
       localDir = "${config.home.homeDirectory}/P";
       remote = "protondrive:";
+
+      # inotifywait can't push changes to Proton Drive's side (no webhook -
+      # the 15-minute timer below is the only way to catch remote edits),
+      # but it can react to local edits in ~/P almost instantly instead of
+      # waiting out the timer interval. `-r` makes it recurse into
+      # subdirectories, which a plain systemd.path unit can't do (path
+      # units only watch a directory's own immediate contents).
+      #
+      # The `while read -t 5` drains any further events for 5s of quiet
+      # before firing - without it, an editor doing several
+      # create/write/rename steps on one save would queue up that many
+      # separate bisync runs back to back instead of one.
+      watchScript = pkgs.writeShellScript "proton-drive-bisync-watch" ''
+        ${pkgs.inotify-tools}/bin/inotifywait -mr -e create,delete,close_write,move "${localDir}" |
+        while read -r _; do
+          while read -r -t 5 _; do :; done
+          systemctl --user start proton-drive-bisync.service
+        done
+      '';
     in
     {
-      home.packages = [ pkgs.rclone ];
+      home.packages = [
+        pkgs.rclone
+        pkgs.inotify-tools
+      ];
 
       systemd.user.services.proton-drive-bisync = {
-        Unit.Description = "Bidirectional sync of ~/P with Proton Drive";
+        Unit = {
+          Description = "Bidirectional sync of ~/P with Proton Drive";
+          # Silent failures defeat the point of an unattended sync - surface
+          # them as a desktop notification instead of leaving it to whoever
+          # happens to check the journal.
+          OnFailure = [ "proton-drive-bisync-notify-failure.service" ];
+        };
         Service = {
           Type = "oneshot";
           ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p ${localDir}";
@@ -38,8 +66,26 @@
         };
       };
 
+      systemd.user.services.proton-drive-bisync-notify-failure = {
+        Unit.Description = "Desktop notification for a failed Proton Drive bisync";
+        Service = {
+          Type = "oneshot";
+          ExecStart = "${pkgs.libnotify}/bin/notify-send --urgency=critical 'Proton Drive sync failed' 'systemctl --user status proton-drive-bisync.service for details'";
+        };
+      };
+
+      systemd.user.services.proton-drive-bisync-watch = {
+        Unit.Description = "Watch ~/P and trigger a bisync on local changes";
+        Service = {
+          Type = "simple";
+          ExecStart = watchScript;
+          Restart = "on-failure";
+        };
+        Install.WantedBy = [ "default.target" ];
+      };
+
       systemd.user.timers.proton-drive-bisync = {
-        Unit.Description = "Periodic Proton Drive bisync";
+        Unit.Description = "Periodic Proton Drive bisync (catches remote-side changes)";
         Timer = {
           OnBootSec = "5m";
           OnUnitActiveSec = "15m";
