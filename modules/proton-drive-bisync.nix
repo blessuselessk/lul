@@ -62,7 +62,11 @@
           # --resilient/--recover: rclone's documented way to let an
           # unattended/scripted run survive interruptions without falling
           # back to requiring a manual --resync.
-          ExecStart = "${pkgs.rclone}/bin/rclone bisync ${localDir} ${remote} --resilient --recover -v";
+          # --create-empty-src-dirs: without it bisync only moves files and
+          # silently ignores directory creation/deletion on either side -
+          # confirmed live 2026-10-20, an empty folder added on either end
+          # produced "No changes found" with nothing propagated.
+          ExecStart = "${pkgs.rclone}/bin/rclone bisync ${localDir} ${remote} --resilient --recover --create-empty-src-dirs -v";
         };
       };
 
