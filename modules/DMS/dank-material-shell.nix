@@ -119,25 +119,12 @@
         # auto-populated from defaults), so leaving it in would leave an empty
         # file that shadows the static binds or causes future duplicate-bind
         # errors if someone runs `dms keybinds set` for the same key.
-        #
-        # "layout" is also excluded: with `includes.override` at its default
-        # of true, niri's config.kdl includes our Nix-generated hm.kdl
-        # *before* dms/layout.kdl, and niri merges includes per-property with
-        # later ones winning - so DMS's own runtime-generated focus-ring/
-        # border colors (synced live to the current theme accent by the dms
-        # daemon, not by Nix) were silently overwriting the active-gradient
-        # set below in niri.nix every time. Dropping "layout" here means our
-        # Nix-declared layout block is the only one niri ever sees - the
-        # tradeoff is that focus-ring/border no longer follow DMS's live
-        # theme-accent color. To revert and let DMS's theme color win again,
-        # add "layout" back to the list below (restoring the original
-        # upstream default order) and drop the active-gradient override in
-        # niri.nix.
         programs.dank-material-shell.niri.enableKeybinds = true;
         programs.dank-material-shell.niri.includes.filesToInclude = [
           "alttab"
           "colors"
           "cursor"
+          "layout"
           "outputs"
           "windowrules"
           "wpblur"
