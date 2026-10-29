@@ -279,6 +279,21 @@
           variant = "";
         };
 
+        # The focused window's ring uses the "pastel rainbow gradient" from
+        # niri's own resources/default-config.kdl (linked from the README's
+        # "Gradient borders" feature entry) - a two-stop gradient whose
+        # `in' = "oklch longer hue"` interpolation takes the long way around
+        # the hue wheel between the two stops instead of the short, muted
+        # way, which is what makes it read as a multi-color rainbow rather
+        # than a plain two-color blend.
+        programs.niri.settings.layout.focus-ring.active.gradient = {
+          from = "#e5989b";
+          to = "#ffb4a2";
+          angle = 45;
+          in' = "oklch longer hue";
+          relative-to = "workspace-view";
+        };
+
         # niri-flake fully replaces niri's own built-in default config once
         # `programs.niri.settings`/`config` is touched at all - it does not
         # fall back to niri's stock keybinds, so an empty `binds` here means
