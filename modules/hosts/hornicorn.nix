@@ -27,6 +27,7 @@
       den.aspects.transmission
       den.aspects.nodejs
       den.aspects.nix-ld
+      den.aspects.kanata
       # den.aspects.voxtype  # parked again as modules/_voxtype.nix - re-add
       #   this line and the homeManager one below once it's ready to come
       #   back in (see 31a0d5e for the original parking reason).
