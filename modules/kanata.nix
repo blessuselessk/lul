@@ -10,15 +10,18 @@
   #     for a modifier), mirrored GACS (Gui Alt Ctrl Shift) on each hand.
   #   - Six thumb-cluster keys are tap-hold (tap for their normal key, hold
   #     to activate a layer): Space->Nav, Tab->Mouse, (Caps Lock)->Media on
-  #     the left; Backspace->Num, Enter->Sym, Delete->Fun on the right.
+  #     the left; (Right Alt)->Num, Enter->Sym, Delete->Fun on the right.
   #
   # Miryoku's reference layout needs 3 thumb keys per hand, which a laptop
   # keyboard doesn't have - there's only Space next to a Fn/Alt/Ctrl row.
   # Caps Lock stands in for the missing third left-hand thumb key (freed up
   # since it has no other use here, and already a well-worn convention for
   # this exact problem): tap it for Escape, hold it for the Media layer.
-  # The right hand doesn't need a substitute - Backspace, Enter, and Delete
-  # already exist as real keys on a standard keyboard.
+  # The right hand doesn't need a substitute for Enter/Delete, but the
+  # primary right thumb key lives on Right Alt rather than Backspace - tap
+  # Right Alt to send Backspace, hold it for the Num layer. The physical
+  # Backspace key is left out of defsrc entirely, so it's untouched by
+  # kanata and still deletes/auto-repeats exactly like a normal keyboard.
   #
   # Deliberately left out, as they're meaningful only on the split/custom
   # keyboards Miryoku targets and do nothing on a laptop's own keyboard:
@@ -49,7 +52,7 @@
           q    w    e    r    t    y    u    i    o    p
           a    s    d    f    g    h    j    k    l    scln
           z    x    c    v    b    n    m    ,    .    /
-          caps spc  tab  ret  bspc del
+          caps spc  tab  ret  ralt del
         )
 
         (defalias
@@ -68,7 +71,7 @@
           spc_nav   (tap-hold-release 200 200 spc (layer-while-held nav))
           tab_mouse (tap-hold-release 200 200 tab (layer-while-held mouse))
           ret_sym   (tap-hold-release 200 200 ret (layer-while-held sym))
-          bspc_num  (tap-hold-release 200 200 bspc (layer-while-held num))
+          ralt_num  (tap-hold-release 200 200 bspc (layer-while-held num))
           del_fun   (tap-hold-release 200 200 del (layer-while-held fun))
 
           ;; nav/mouse shared clipboard row - see the Ctrl+C/X/V/Z note above
@@ -98,7 +101,7 @@
           q        w      e      r      t      y    u      i      o      p
           @a_gui   @s_alt @d_ctl @f_sft g      h    @j_sft @k_ctl @l_alt @scl_gui
           z        x      c      v      b      n    m      ,      .      /
-          @esc_media @spc_nav @tab_mouse @ret_sym @bspc_num @del_fun
+          @esc_media @spc_nav @tab_mouse @ret_sym @ralt_num @del_fun
         )
 
         ;; primary right-hand layer (left home thumb/Space): navigation + clipboard
@@ -125,7 +128,7 @@
           _ _ _ _ pp mute
         )
 
-        ;; primary left-hand layer (right Backspace): numpad-style numerals
+        ;; primary left-hand layer (right Alt): numpad-style numerals
         (deflayer num
           [    7 8 9 ]    _ _ _ _ _
           scln 4 5 6 eql  _ _ _ _ _
