@@ -49,7 +49,7 @@
         # active seat user (bmc) then got no sinks or sources at all.
         # logind's uaccess and rtkit already cover audio device access and
         # realtime priority without needing this group.
-        extraGroups = [ "input" "libvirtd" "transmission" ];
+        extraGroups = [ "input" "libvirtd" "transmission" "costacombat" ];
         packages = [
           iDescriptor
         ];

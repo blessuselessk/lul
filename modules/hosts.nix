@@ -5,6 +5,6 @@
     lessuseless = { };
     vanya = { };
     aldair = { };
-    bmc = { };
+    costacombat = { };
   };
 }
