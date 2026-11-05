@@ -18,5 +18,12 @@
       description = "costacombat";
       extraGroups = [ "costacombat" ];
     };
+
+    # gh CLI only. The git credential helper and SSH host aliases live in
+    # modules/git.nix, which this user does not include, so git identity
+    # and keys stay unchanged. Run `gh auth login` once as costacombat.
+    homeManager = { pkgs, ... }: {
+      home.packages = [ pkgs.gh ];
+    };
   };
 }
