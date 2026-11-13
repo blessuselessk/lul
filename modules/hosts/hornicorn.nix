@@ -26,6 +26,7 @@
       den.aspects.talon
       den.aspects.transmission
       den.aspects.nodejs
+      den.aspects.bun
       den.aspects.nix-ld
       den.aspects.kanata
       # den.aspects.voxtype  # parked again as modules/_voxtype.nix - re-add
