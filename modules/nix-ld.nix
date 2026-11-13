@@ -17,6 +17,35 @@
       bzip2
       xz
       systemd
+
+      # Libraries that Playwright's downloaded Chromium/Firefox expect
+      # (used by gstack's /browse setup).
+      glib
+      nss
+      nspr
+      dbus
+      atk
+      at-spi2-atk
+      at-spi2-core
+      cups
+      libdrm
+      gtk3
+      pango
+      cairo
+      expat
+      libxkbcommon
+      alsa-lib
+      mesa
+      libgbm
+      fontconfig
+      freetype
+      libx11
+      libxcomposite
+      libxdamage
+      libxext
+      libxfixes
+      libxrandr
+      libxcb
     ];
   };
 }
