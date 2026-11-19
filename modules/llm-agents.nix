@@ -5,7 +5,7 @@
     inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  den.aspects.llm-agents.homeManager = { pkgs, ... }:
+  den.aspects.llm-agents.nixos = { pkgs, ... }:
     let
       # `claude` (from llm-agents-nix below) is the pinned Nix build.
       # `claude-code` and `cc` run the newest @anthropic-ai/claude-code
@@ -20,7 +20,7 @@
       };
     in
     {
-      home.packages = [
+      environment.systemPackages = [
         (npmClaudeCode "claude-code")
         (npmClaudeCode "cc")
       ] ++ (with inputs.llm-agents-nix.packages.${pkgs.stdenv.hostPlatform.system}; [
