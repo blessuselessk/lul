@@ -14,7 +14,7 @@ edit modules/ → nix run .#write-flake (if needed) → commit → git push → 
    nix run .#write-flake
    ```
    `flake.nix` is auto-generated — **never edit it directly**. The file says so at the top.
-3. **Commit and push** to `master`. GitHub Actions (`build-systems.yml`) builds the `hornicorn` system closure and pushes it to Cachix automatically.
+3. **Commit and push** to `main`. GitHub Actions (`build-systems.yml`) builds the `hornicorn` system closure and pushes it to Cachix automatically.
 4. **Apply on the machine** once CI goes green:
    ```console
    sudo nixos-rebuild switch --flake github:blessuselessk/lul#hornicorn
