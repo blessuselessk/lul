@@ -5,20 +5,6 @@
       url = "github:AvengeMedia/DankMaterialShell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    # DMS's shell.qml uses a `//@ pragma AppId ...` directive that nixpkgs'
-    # packaged quickshell (0.2.1) doesn't recognize ("ERROR: Unrecognized
-    # pragma \"AppId com.danklinux.dms\"", found via direct quickshell log
-    # inspection - this was the actual root cause of the greeter showing a
-    # black screen/blinking cursor, unrelated to niri/DRM/VM at all -
-    # confirmed unaffected by dms's own nixpkgs pin, since it resolves to
-    # the same 0.2.1). quickshell's own flake tracks upstream (0.3.0+)
-    # directly, so its package is used explicitly below instead of relying
-    # on whatever nixpkgs revision either flake pins.
-    quickshell = {
-      url = "github:quickshell-mirror/quickshell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   # Dank Material Shell aspect - QuickShell-based bar/launcher/notifications/
@@ -31,7 +17,7 @@
         imports = [
           inputs.dms.nixosModules.dank-material-shell
           # nixosModules.greeter was removed from DMS upstream; the greeter
-          # is now the nixpkgs-native `services.displayManager.dms-greeter`
+          # is now the nixpkgs-native `services.displayManager.dux-greeter`
           # module (no import needed).
         ];
 
@@ -41,27 +27,26 @@
         # it); without it, DMS's UI shows them as "Not available" even
         # though the actual shell/bar works fine regardless.
         programs.dank-material-shell.enable = true;
-        # This is a THIRD, separate quickshell.package option (distinct
-        # from the greeter's and home-manager's own) that gets installed
-        # system-wide via environment.systemPackages. Left at its default
-        # (0.2.1), it regressed the AppId-pragma crash: the greeter's own
-        # wrapper *appends* its bundled quickshell path to $PATH rather
-        # than prepending, so the system-wide 0.2.1 (earlier in $PATH via
-        # /run/current-system/sw/bin) won and shadowed the 0.3.0 override
-        # below - black screen again, on the very next boot after enabling
-        # this option. Overriding it here for consistency.
-        programs.dank-material-shell.quickshell.package = lib.mkForce inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        # No Quickshell override any more (removed 2026-11-21). These
+        # overrides existed because nixpkgs shipped Quickshell 0.2.1, which
+        # rejects DMS's `//@ pragma AppId` line and left the greeter on a
+        # black screen. Now DMS bundles its own Qt runtime (dux-qt-base),
+        # so it no longer runs on an external Quickshell, and upstream
+        # removed `programs.dank-material-shell.quickshell.package`. The
+        # greeter's default `pkgs.quickshell` is 0.3.2, which supports the
+        # pragma. The separate `quickshell` flake input was dropped too.
 
         # Takes over `services.greetd` (via mkDefault) with an actual DMS
         # login UI instead of the bare niri-session auto-launch - the manual
         # greetd block that used to live in niri.nix has been removed so it
         # doesn't out-priority these defaults.
         # Moved from programs.dank-material-shell.greeter (removed upstream)
-        # to the nixpkgs-native services.displayManager.dms-greeter.
-        services.displayManager.dms-greeter = {
+        # to the nixpkgs-native greeter module. nixpkgs renamed it from
+        # `dms-greeter` to `dux-greeter`. The old name still has an alias,
+        # but values wrapped in lib.mkForce fail to pass through it.
+        services.displayManager.dux-greeter = {
           enable = true;
           compositor.name = "niri";
-          quickshell.package = lib.mkForce inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
         };
 
         # Root-cause fix for the "gnome-keyring login collection stays
@@ -107,7 +92,6 @@
         # toggle (defaults to false), which we hadn't set. Without this,
         # niri runs fine but no DMS bar/shell ever launches.
         programs.dank-material-shell.systemd.enable = true;
-        programs.quickshell.package = lib.mkForce inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
         # DMS's keybinds (Mod+Space launcher, Mod+N notifications, Mod+Comma
         # settings, Mod+P notepad, Super+Alt+L lock, media/brightness keys,
