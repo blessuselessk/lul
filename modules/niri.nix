@@ -53,10 +53,17 @@
         imports = [ inputs.niri-flake.nixosModules.niri ];
 
         programs.niri.enable = true;
-        # Use the unstable niri build to get ext-background-effect-v1 (background
-        # blur) and the `include optional=true` KDL directive (required for DMS's
-        # dynamic theming fragments). The stable 25.08 package has neither.
-        programs.niri.package = inputs.niri-flake.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
+        # niri from our own nixpkgs (26.04+). It has ext-background-effect-v1
+        # (background blur) and the `include optional=true` KDL directive
+        # (needed for DMS's dynamic theming fragments).
+        #
+        # Previously this was niri-flake's niri-unstable. That one is built
+        # against the pinned nixpkgs-niri-flake-compat (glibc 2.42), while
+        # Mesa comes from our main nixpkgs. Once main nixpkgs moved to
+        # glibc 2.43 (2026-11-21), niri could no longer load the Mesa
+        # driver ("GLIBC_2.43 not found"), found no output to draw on, and
+        # the greeter and session stayed black.
+        programs.niri.package = pkgs.niri;
 
         security.polkit.enable = true;
         # `security.polkit.enable` only starts polkitd - it does NOT setuid-
