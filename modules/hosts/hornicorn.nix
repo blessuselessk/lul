@@ -27,7 +27,7 @@
       den.aspects.transmission
       den.aspects.nodejs
       den.aspects.bun
-      den.aspects.llm-agents
+      den.aspects.claude-code
       den.aspects.nix-ld
       den.aspects.kanata
       den.aspects.kiri
