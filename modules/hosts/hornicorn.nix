@@ -28,6 +28,7 @@
       den.aspects.nodejs
       den.aspects.bun
       den.aspects.claude-code
+      den.aspects.codex
       den.aspects.nix-ld
       den.aspects.kanata
       den.aspects.kiri
